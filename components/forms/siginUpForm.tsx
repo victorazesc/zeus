@@ -17,7 +17,7 @@ const SignUpForm = ({ email }: Props) => {
     const form = useForm<z.infer<typeof SignInWithPasswordSchema>>({
         resolver: zodResolver(SignInWithPasswordSchema),
         defaultValues: {
-            email: "dfsdfasdf@htomail.com",
+            email: email ?? '',
             password: ""
         },
     });
@@ -73,7 +73,7 @@ const SignUpForm = ({ email }: Props) => {
 
                                             />
                                             <Eye
-                                                className="absolute right-3 h-5 w-5 stroke-custom-text-400 hover:cursor-pointer"
+                                                className="absolute right-3 h-5 w-5 stroke-custom-text-300 hover:cursor-pointer"
                                                 onClick={handleEmailClear}
                                             />
                                         </div>

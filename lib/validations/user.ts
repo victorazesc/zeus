@@ -19,29 +19,25 @@ export const UserValidation = z.object({
 export const SignInSchema = z.object({
   email: z
     .string()
-    .min(1, { message: "This field has to be filled." })
-    .email("This is not a valid email.")
-    .refine((e) => e === "abcd@fg.com", "This email is not in our database")
+    .min(1, { message: "Este campo deve ser preenchido." })
+    .email("Este não é um e-mail válido.")
+  // .refine((e) => e === "abcd@fg.com", "This email is not in our database")
 });
 export const SignInWithOtpSchema = z.object({
   email: z
     .string()
-    .min(1, { message: "This field has to be filled." })
-    .email("This is not a valid email.")
-    .refine((e) => e === "abcd@fg.com", "This email is not in our database"),
+    .min(1, { message: "Este campo deve ser preenchido." })
+    .email("Este não é um e-mail válido."),
   otp: z
     .string()
-    .min(12, { message: "Minimum 3 characters." })
-    .max(12, { message: "Maximum 30 caracters." }),
+    .min(14, { message: "Minimum 3 characters." })
+    .max(14, { message: "Maximum 30 caracters." }),
 });
 export const SignInWithPasswordSchema = z.object({
   email: z
     .string()
-    .min(1, { message: "This field has to be filled." })
-    .email("This is not a valid email.")
-    .refine((e) => e === "abcd@fg.com", "This email is not in our database"),
+    .min(1, { message: "Este campo deve ser preenchido." })
+    .email("Este não é um e-mail válido."),
   password: z
-    .string()
-    .min(12, { message: "Minimum 3 characters." })
-    .max(12, { message: "Maximum 30 caracters." }),
+    .any()
 });

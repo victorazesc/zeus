@@ -1,56 +1,89 @@
-"use client";
-
+"use client"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SignInSchema, UserValidation } from "@/lib/validations/user";
+import { SignInSchema } from "@/lib/validations/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { GoogleSignInButton } from "@/components/ui/google-sign-in";
+// import { GoogleSignInButton } from "@/components/ui/google-sign-in";
+import { toast } from "sonner";
+import { XCircle } from "lucide-react";
+import { signIn } from "next-auth/react";
 
-interface Props {
-    email: string
-}
 
-const SignInForm = ({ email }: Props) => {
+type Props = {
+    onSubmit: (isAccessPassword: boolean) => void;
+    updateEmail: React.Dispatch<React.SetStateAction<string>>;
+};
+
+export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
+
     const form = useForm<z.infer<typeof SignInSchema>>({
         resolver: zodResolver(SignInSchema),
         defaultValues: {
-            email,
+            email: '',
         },
+        mode: "onChange",
+        reValidateMode: "onChange",
     });
+    const { handleSubmit, formState: { errors, isSubmitting, isValid } } = form
+
+    const handleFormSubmit = async (values: z.infer<typeof SignInSchema>) => {
+        try {
+            const response = await fetch(`/api/email-check`, {
+                method: 'POST',
+                body: JSON.stringify({ email: values.email })
+            })
+            const res = await response.json()
+            onSubmit(res.isAccessPassword)
+            updateEmail(values.email);
+        } catch (e) {
+            console.error(e)
+            toast.error("Ah, não! algo deu errado.", {
+                description: "Houve um problema com a sua requisição.",
+            })
+        }
+    }
+
     return (
         <>
             <div className="mx-auto flex flex-col">
-                <h1 className="sm:text-2.5xl text-center text-2xl font-medium text-auth-text-100">Bem-vindo de volta! Vamos começar de onde paramos</h1>
+                <h1 className="text-center text-2xl font-medium text-auth-text-100">Bem-vindo de volta! Vamos começar de onde paramos</h1>
                 <p className="mt-2.5 text-center text-sm text-custom-auth-text-100">
                     Retorne ao comando de sua empresa, projetos e espaços de trabalho.
                 </p>
                 <Form {...form}>
                     <form
                         className='mx-auto mt-8 space-y-4 sm:w-96'
-                        onSubmit={() => { }}
+                        onSubmit={handleSubmit(handleFormSubmit)}
                     >
                         <FormField
                             control={form.control}
                             name='email'
-                            render={({ field }) => (
-                                <FormItem className='flex w-full flex-col gap-3'>
+                            render={({ field: { value, onChange } }) => (
+                                <FormItem className='relative flex w-full flex-col gap-3'>
                                     <FormControl>
                                         <Input
                                             placeholder="example@email.com"
                                             type='text'
                                             required
                                             className='account-form_input no-focus'
-                                            {...field}
+                                            value={value}
+                                            onChange={onChange}
                                         />
                                     </FormControl>
+                                    {value.length > 0 && (
+                                        <XCircle
+                                            className="absolute right-3 h-5 w-5 stroke-custom-text-300 hover:cursor-pointer"
+                                            onClick={() => onChange("")}
+                                        />
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <Button type='submit' variant={"default"} size={"lg"} className='border-custom-primary-100 text-white  w-full'>
+                        <Button type='submit' variant={"default"} size={"lg"} loading={isSubmitting} disabled={isSubmitting || !isValid} className='border-custom-primary-100 text-white  w-full'>
                             Continuar
                         </Button>
                     </form>
@@ -62,16 +95,18 @@ const SignInForm = ({ email }: Props) => {
                         <div className="flex-grow border-t border-custom-auth-border-100"></div>
                     </div>
 
-                    <GoogleSignInButton handleSignIn={function (value: any): void {
+                    <Button onClick={async () => {
+                        await signIn('google')
+                    }}>
+                        login com o google
+                    </Button>
+                    {/* <GoogleSignInButton handleSignIn={function (value: any): void {
                         throw new Error("Function not implemented.");
-                    }} clientId={""} type={"sign_in"} />
-                    
+                    }} clientId={""} type={"sign_in"} /> */}
+
                     <p className="text-xs text-onboarding-text-300 text-center mt-6">Não tem uma conta? <a className="text-custom-primary-100 font-medium underline" href="">Inscrever-se</a></p>
                 </div>
             </div>
         </>
     )
-
 }
-
-export default SignInForm

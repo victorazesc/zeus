@@ -1,34 +1,19 @@
 "use client";
 
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SignInWithOtpSchema } from "@/lib/validations/user";
+import { SignInSchema, SignInWithOtpSchema, UserValidation } from "@/lib/validations/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "../ui/input-otp";
 import { XCircle } from "lucide-react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { User } from "@prisma/client";
-import useTimer from "@/hooks/use-timer";
-import { toast } from "sonner";
-
 
 interface Props {
-    email: string;
-    onSubmit: (isAccessPassword: boolean) => Promise<void>;
-    handleEmailClear: () => void;
-    submitButtonText: string;
-};
-
-const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear, submitButtonText }) => {
-
-    const [isRequestingNewCode, setIsRequestingNewCode] = useState(false);
-    const { timer: resendTimerCode, setTimer: setResendCodeTimer } = useTimer(30);
-    const route = useRouter()
-
+    email: string
+}
+const SignUpFormWithOtp: React.FC<Props> = ({ email }) => {
     const form = useForm<z.infer<typeof SignInWithOtpSchema>>({
         resolver: zodResolver(SignInWithOtpSchema),
         defaultValues: {
@@ -36,71 +21,26 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
             otp: ""
         },
     });
-    const { handleSubmit, formState: { errors, isSubmitting, isValid }, reset, getValues } = form
 
 
+    const { handleSubmit, formState: { errors, isSubmitting, isValid } } = form
 
-    const handleUniqueCodeSignIn = async (values: z.infer<typeof SignInWithOtpSchema>) => {
-        try {
-            const result = await signIn('auth-magic', { magicToken: values.otp, email: values.email, redirect: false })
 
-            if (result?.error) {
-                throw new Error(result?.error)
-            }
+    const onSubmit = async (values: z.infer<typeof SignInWithOtpSchema>) => {
+        const response = await fetch(`/api/auth/${values.email}/validate`, {
+            method: 'POST',
+            body: JSON.stringify({ otp: values.otp })
+        })
+        const isValid = await response.json()
+        if (isValid) isVeryfied(isValid)
 
-            const response = await fetch(`/api/me`, {
-                method: 'GET'
-            })
-            const user = await response.json() as User
-
-            await onSubmit(user.isAccessPassword);
-
-            if (user.isAccessPassword) {
-                route.push('/onboarding')
-            }
-
-        } catch (error: Error | any) {
-            toast.error("Ah, não! algo deu errado.", {
-                description: error.message ?? "Houve um problema com a sua requisição.",
-            })
-        }
     }
 
-    const handleSendNewCode = async (values: z.infer<typeof SignInWithOtpSchema>) => {
-        try {
-            const response = await fetch(`/api/magic-generate`, {
-                method: 'POST',
-                body: JSON.stringify({ email: values.email })
-            })
-
-            if (!response) {
-                throw new Error("Não foi possivel gerar um código, tente novamente.")
-            }
-
-            setResendCodeTimer(30);
-            toast.success("Sucesso!", { description: "Um novo código exclusivo foi enviado para seu e-mail." })
-            reset({
-                email: values.email,
-                otp: "",
-            });
-        } catch (error: Error | any) {
-            toast.error("Ah, não! algo deu errado.", {
-                description: error.message ?? "Houve um problema com a sua requisição.",
-            })
-        }
+    function handleEmailClear(event: any): void {
+        throw new Error("Function not implemented.");
+    }
 
 
-    };
-
-    const handleRequestNewCode = async () => {
-        setIsRequestingNewCode(true);
-
-        await handleSendNewCode(getValues())
-            .then(() => setResendCodeTimer(30))
-            .finally(() => setIsRequestingNewCode(false));
-    };
-
-    const isRequestNewCodeDisabled = isRequestingNewCode || resendTimerCode > 0;
 
     return (
         <>
@@ -112,7 +52,7 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
                 <Form {...form}>
                     <form
                         className='mx-auto mt-8 space-y-4 sm:w-96'
-                        onSubmit={handleSubmit(handleUniqueCodeSignIn)}
+                        onSubmit={handleSubmit(onSubmit)}
                     >
                         <FormField
                             control={form.control}
@@ -148,7 +88,7 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
                                 <FormItem className='flex w-full flex-col'>
                                     <FormControl>
                                         <Input
-                                            placeholder="zeus-cast-bolt"
+                                            placeholder="zeus-cast-bolt ss"
                                             type='text'
                                             className='-mb-2 no-focus'
                                             {...field}
@@ -157,16 +97,16 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
                                     <div className="w-full text-right">
                                         <button
                                             type="button"
-                                            onClick={handleRequestNewCode}
-                                            className={`text-xs ${isRequestNewCodeDisabled
-                                                ? "text-onboarding-text-300"
-                                                : "text-onboarding-text-200 hover:text-custom-primary-100"
+                                            // onClick={handleRequestNewCode}
+                                            className={`text-xs ${false
+                                                ? "text-auth-text-300"
+                                                : "text-auth-text-200 hover:text-custom-primary-100"
                                                 }`}
-                                            disabled={isRequestNewCodeDisabled}
+                                        // disabled={isRequestNewCodeDisabled}
                                         >
-                                            {resendTimerCode > 0
-                                                ? `Request new code in ${resendTimerCode}s`
-                                                : isRequestingNewCode
+                                            {0 > 0
+                                                ? `Request new code in ${5}s`
+                                                : true
                                                     ? "Requesting new code"
                                                     : "Request new code"}
                                         </button>
@@ -176,7 +116,7 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
                             )}
                         />
 
-                        <Button type='submit' variant={"default"} size={"lg"} loading={isSubmitting} disabled={isSubmitting} className='border-custom-primary-100 text-white  w-full'>
+                        <Button type='submit' variant={"default"} loading={isSubmitting} disabled={isSubmitting} size={"lg"} className='border-custom-primary-100 text-white  w-full'>
                             Continuar
                         </Button>
                     </form>
@@ -187,4 +127,8 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
 
 }
 
-export default SignInFormWithOtp
+export default SignUpFormWithOtp
+
+function isVeryfied(isValid: any) {
+    throw new Error("Function not implemented.");
+}
