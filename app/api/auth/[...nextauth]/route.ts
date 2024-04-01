@@ -1,7 +1,7 @@
 import NextAuth, { AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { signWithPassword, validadeOtpAndSingIn } from "@/lib/actions/user.action";
-import GoogleProvider from "next-auth/providers/google";
+import { signWithPassword, validadeOtpAndSingIn, validateGoogleSign } from "@/lib/actions/user.action";
+import GoogleProvider, { GoogleProfile } from "next-auth/providers/google";
 import { User } from "@prisma/client";
 
 const nextAuthOptions: AuthOptions = {
@@ -22,7 +22,8 @@ const nextAuthOptions: AuthOptions = {
             //@ts-ignore
             async authorize(credentials, req): Promise<User | null> {
                 try {
-                    const result: User | any = await validadeOtpAndSingIn({ email: credentials?.email, inputedOtp: credentials?.magicToken })
+                    if (!credentials) throw new Error()
+                    const result: User | any = await validadeOtpAndSingIn({ email: credentials.email, inputedOtp: credentials?.magicToken })
 
 
                     if (!result) {
@@ -67,7 +68,11 @@ const nextAuthOptions: AuthOptions = {
             return user
         },
         //@ts-ignore
-        async jwt({ token, user, trigger, session }) {
+        async jwt({ token, user, trigger, session, profile, account }: any) {
+            if (profile && account?.provider === 'google') {
+                user = await validateGoogleSign({ profile })
+            }
+
             if (trigger === "update") {
                 return { ...token, ...session.user };
             }

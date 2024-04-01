@@ -6,9 +6,13 @@ import { JWT, getToken } from "next-auth/jwt";
 import { comparePasswords, hashPassword } from "../auth";
 import { signJwtAccessToken } from "../jwt";
 import { signIn } from "next-auth/react";
+import { GoogleProfile } from "next-auth/providers/google";
 
-interface ITokenUser extends JWT {
-    user: User
+interface IcreateUser {
+    avatar?: string
+    name?: string
+    email: string
+    isSocialAuth?: boolean
 }
 
 export async function getuser({
@@ -19,14 +23,15 @@ export async function getuser({
     return await prisma.user.findUnique({ where: { email: email } });
 }
 
-export async function createUser(email?: string) {
-
+export async function createUser({ email, isSocialAuth, avatar }: IcreateUser) {
     try {
         if (!email) throw new Error('Email, não foi informado')
         return await prisma.user.create({
             data: {
                 email,
-                username: email.split('@')[0]
+                username: email.split('@')[0],
+                isSocialAuth,
+                avatar
             }
         })
     } catch (error: any) {
@@ -59,7 +64,7 @@ export async function validadeOtpAndSingUp() {
 
 }
 
-export async function validadeOtpAndSingIn({ email, inputedOtp }: { email?: string, inputedOtp?: string }) {
+export async function validadeOtpAndSingIn({ email, inputedOtp }: { email: string, inputedOtp?: string }) {
     const cachedOtp = await kv.get(`otp_${email}`);
     if (cachedOtp != inputedOtp) {
         console.log('otp errado')
@@ -68,7 +73,7 @@ export async function validadeOtpAndSingIn({ email, inputedOtp }: { email?: stri
     let user = await getuser({ email })
 
     if (!user) {
-        user = await createUser(email)
+        user = await createUser({ email })
     }
 
     const { password, ...userWithoutPass } = user;
@@ -79,6 +84,29 @@ export async function validadeOtpAndSingIn({ email, inputedOtp }: { email?: stri
     };
 
     await kv.del(`otp_${email}`)
+    return result;
+
+}
+
+export async function validateGoogleSign({ profile }: { profile: GoogleProfile }) {
+    let user = await getuser({ email: profile.email })
+    if (!user) {
+        const createUserPayload: IcreateUser = {
+            avatar: profile.picture,
+            email: profile.email,
+            name: profile.name,
+            isSocialAuth: true,
+        }
+        user = await createUser(createUserPayload)
+    }
+
+    const { password, ...userWithoutPass } = user;
+    const accessToken = signJwtAccessToken(userWithoutPass);
+    const result = {
+        ...userWithoutPass,
+        accessToken,
+    };
+
     return result;
 
 }
