@@ -96,8 +96,6 @@ export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
                         <div className="flex-grow border-t border-custom-auth-border-100"></div>
                     </div>
                     <GoogleSignInButton />
-
-                    <p className="text-xs text-onboarding-text-300 text-center mt-6">Não tem uma conta? <a className="text-custom-primary-100 font-medium underline" href="">Inscrever-se</a></p>
                 </div>
             </div>
         </>
