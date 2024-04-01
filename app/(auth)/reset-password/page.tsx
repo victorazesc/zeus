@@ -18,12 +18,11 @@ interface Props {
     email: string
 }
 
-const Page = () => {
+const Page = ({ searchParams }: any) => {
     const route = useRouter()
-    const searchParams = useSearchParams()
 
-    const token = searchParams.get('token')
-    const email = searchParams.get('email')
+    const token = searchParams.token
+    const email = searchParams.email
 
     const { update, data: session } = useSession() as any
     const [showPassword, setShowPassword] = useState(false);
@@ -80,7 +79,7 @@ const Page = () => {
         } catch (error: any) {
             console.error(error)
             toast.error("Ah, não! algo deu errado.", {
-                description: error.message?? "Houve um problema com a sua requisição.",
+                description: error.message ?? "Houve um problema com a sua requisição.",
             })
         }
 

@@ -61,6 +61,7 @@ const nextAuthOptions: AuthOptions = {
             }
         })
     ],
+    secret: process.env.SECRET,
     callbacks: {
         async signIn({ user, account, profile, email, credentials }: any) {
             return user

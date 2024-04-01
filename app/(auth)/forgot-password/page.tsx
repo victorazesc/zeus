@@ -5,18 +5,12 @@ import { Input } from "@/components/ui/input";
 import useTimer from "@/hooks/use-timer";
 import { SignInSchema } from "@/lib/validations/user";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { XCircle } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 
-export default function Page() {
-    // router
-    const searchParams = useSearchParams()
-
-    const email = searchParams.get('email')
+export default function Page({ searchParams }: any) {
+    const email = searchParams.email
     // timer
     const { timer: resendTimerCode, setTimer: setResendCodeTimer } = useTimer(0);
     // form info
