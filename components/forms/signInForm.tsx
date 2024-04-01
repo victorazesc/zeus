@@ -10,6 +10,7 @@ import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { XCircle } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { GoogleSignInButton } from "../ui/google-sign-in";
 
 
 type Props = {
@@ -94,15 +95,7 @@ export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
                         <span className="flex-shrink mx-4 text-custom-auth-text-100">Ou continue com</span>
                         <div className="flex-grow border-t border-custom-auth-border-100"></div>
                     </div>
-
-                    <Button onClick={async () => {
-                        await signIn('google')
-                    }}>
-                        login com o google
-                    </Button>
-                    {/* <GoogleSignInButton handleSignIn={function (value: any): void {
-                        throw new Error("Function not implemented.");
-                    }} clientId={""} type={"sign_in"} /> */}
+                    <GoogleSignInButton />
 
                     <p className="text-xs text-onboarding-text-300 text-center mt-6">Não tem uma conta? <a className="text-custom-primary-100 font-medium underline" href="">Inscrever-se</a></p>
                 </div>

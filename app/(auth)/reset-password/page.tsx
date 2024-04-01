@@ -2,12 +2,11 @@
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SignInWithOtpSchema, SignInWithPasswordSchema } from "@/lib/validations/user";
+import { SignInWithPasswordSchema } from "@/lib/validations/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { XCircle } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";

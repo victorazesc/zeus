@@ -23,12 +23,13 @@ export async function getuser({
     return await prisma.user.findUnique({ where: { email: email } });
 }
 
-export async function createUser({ email, isSocialAuth, avatar }: IcreateUser) {
+export async function createUser({ email, isSocialAuth, avatar, name }: IcreateUser) {
     try {
         if (!email) throw new Error('Email, não foi informado')
         return await prisma.user.create({
             data: {
                 email,
+                name,
                 username: email.split('@')[0],
                 isSocialAuth,
                 avatar
@@ -90,6 +91,7 @@ export async function validadeOtpAndSingIn({ email, inputedOtp }: { email: strin
 
 export async function validateGoogleSign({ profile }: { profile: GoogleProfile }) {
     let user = await getuser({ email: profile.email })
+    console.log(profile)
     if (!user) {
         const createUserPayload: IcreateUser = {
             avatar: profile.picture,
