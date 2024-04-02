@@ -5,13 +5,13 @@ import { SignInWithPasswordSchema } from "@/lib/validations/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, XCircle } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import ESignInSteps from "@/constants/enums/signInSteps";
 import { useRouter } from "next/navigation";
+import { AuthService } from "@/services/auth.service";
 
 type Props = {
     email: string;
@@ -19,6 +19,8 @@ type Props = {
     handleEmailClear: () => void;
     onSubmit: () => Promise<void>;
 };
+
+const authService = new AuthService();
 
 export const SignInFormWithPassword: React.FC<Props> = ({ email, handleStepChange, handleEmailClear, onSubmit }: Props) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -34,41 +36,27 @@ export const SignInFormWithPassword: React.FC<Props> = ({ email, handleStepChang
     const { handleSubmit, formState: { errors, isSubmitting, isValid }, getValues } = form
 
     const handleFormSubmit = async (values: z.infer<typeof SignInWithPasswordSchema>) => {
-        try {
-            const result = await signIn('auth-tidi', { email: values.email, password: values.password, redirect: false })
-            if (result?.error) {
-                throw new Error(result?.error)
-            }
-
-            await onSubmit();
-        } catch (error: Error | any) {
-            toast.error("Ah, não! algo deu errado.", {
-                description: error.message ?? "Houve um problema com a sua requisição.",
-            })
-        }
+        await authService.passwordSignIn(values)
+            .then(() => onSubmit())
+            .catch((error) =>
+                toast.error("Ah, não! algo deu errado.", {
+                    description: error.message ?? "Houve um problema com a sua requisição.",
+                })
+            );
     }
 
     const handleSendUniqueCode = async () => {
-        try {
-            const emailFormValue = getValues("email");
+        const emailFormValue = getValues("email");
 
-            setIsSendingUniqueCode(true);
+        setIsSendingUniqueCode(true);
 
-            await fetch(`/api/magic-generate`, {
-                method: 'POST',
-                body: JSON.stringify({ email: emailFormValue })
-            })
-
-            handleStepChange(ESignInSteps.USE_UNIQUE_CODE_FROM_PASSWORD)
-
-            setIsSendingUniqueCode(false);
-        } catch (error) {
-            console.error(error)
-            toast.error("Ah, não! algo deu errado.", {
-                description: "Houve um problema com a sua requisição.",
-            })
-        }
-
+        await authService.generateUniqueCode({ email: emailFormValue })
+            .then(() => handleStepChange(ESignInSteps.USE_UNIQUE_CODE_FROM_PASSWORD))
+            .catch((error) =>
+                toast.error("Ah, não! algo deu errado.", {
+                    description: error.message ?? "Houve um problema com a sua requisição.",
+                })
+            );
     };
 
     return (

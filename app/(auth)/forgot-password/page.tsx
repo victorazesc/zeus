@@ -4,10 +4,13 @@ import { FormField, FormItem, FormControl, FormMessage, Form } from "@/component
 import { Input } from "@/components/ui/input";
 import useTimer from "@/hooks/use-timer";
 import { SignInSchema } from "@/lib/validations/user";
+import { AuthService } from "@/services/auth.service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
+const authService = new AuthService()
 
 export default function Page({ searchParams }: any) {
     const email = searchParams.email
@@ -23,21 +26,16 @@ export default function Page({ searchParams }: any) {
         mode: "onChange",
         reValidateMode: "onChange",
     });
-    const { handleSubmit, formState: { errors, isSubmitting, isValid } } = form
-
-
+    const { handleSubmit, formState: { isSubmitting, isValid } } = form
 
     const handleForgotPassword = async (values: z.infer<typeof SignInSchema>) => {
-
-
-        const response = await fetch(`/api/auth/forgot-password`, {
-            method: 'POST',
-            body: JSON.stringify({ email: values.email })
-        })
-
-        console.log(response)
-        setResendCodeTimer(30);
-
+        await authService.sendResetPasswordLink({ email: values.email })
+            .then(() => setResendCodeTimer(30))
+            .catch((err) =>
+                toast.error("Ah, não! algo deu errado.", {
+                    description: err?.error ?? "Houve um problema com a sua requisição.",
+                })
+            );
     };
 
     return (
@@ -47,7 +45,7 @@ export default function Page({ searchParams }: any) {
                     <h1 className="sm:text-2.5xl text-center text-2xl font-medium text-onboarding-text-100">
                         Não deixe de lado sua conta
                     </h1>
-                    <p className="mt-2.5 text-center text-sm text-onboarding-text-200"> Obtenha um link para redefinir sua senha      </p>
+                    <p className="mt-2.5 text-center text-sm text-onboarding-text-200"> Obtenha um link para redefinir sua senha </p>
                     <Form {...form}>
                         <form
                             className='mx-auto mt-8 space-y-4 w-full sm:w-96'

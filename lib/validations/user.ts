@@ -21,7 +21,6 @@ export const SignInSchema = z.object({
     .string()
     .min(1, { message: "Este campo deve ser preenchido." })
     .email("Este não é um e-mail válido.")
-  // .refine((e) => e === "abcd@fg.com", "This email is not in our database")
 });
 export const SignInWithOtpSchema = z.object({
   email: z
@@ -38,6 +37,5 @@ export const SignInWithPasswordSchema = z.object({
     .string()
     .min(1, { message: "Este campo deve ser preenchido." })
     .email("Este não é um e-mail válido."),
-  password: z
-    .any()
+  password: z.string().min(4),
 });

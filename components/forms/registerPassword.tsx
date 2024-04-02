@@ -2,20 +2,18 @@
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SignInWithOtpSchema, SignInWithPasswordSchema } from "@/lib/validations/user";
+import { SignInWithPasswordSchema } from "@/lib/validations/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { AuthService } from "@/services/auth.service";
 
-interface Props {
-    email: string
-}
+const authService = new AuthService()
 
 const RegisterPassword = () => {
     const route = useRouter()
@@ -29,28 +27,20 @@ const RegisterPassword = () => {
         },
     });
 
-    const { handleSubmit, formState: { errors, isSubmitting, isValid } } = form
+    const { handleSubmit, formState: { isSubmitting, isValid } } = form
 
-    const [error, setError] = useState<string | null>(null)
     const onSubmit = async (values: z.infer<typeof SignInWithPasswordSchema>) => {
+        await authService.setPassword({ password: values.password }).then(async () => {
+            await update({
+                ...session,
+                user: {
+                    ...session?.user,
+                    isAccessPassword: true,
 
-        await fetch(`/api/me/set-password`, {
-            method: 'PATCH',
-            body: JSON.stringify({ password: values.password })
+                },
+            });
+            route.push('/onboarding')
         })
-
-        await update({
-            ...session,
-            user: {
-                ...session?.user,
-                isAccessPassword: true,
-
-            },
-        });
-
-
-        route.push('/onboarding')
-
     }
 
     return (
@@ -81,11 +71,7 @@ const RegisterPassword = () => {
                                                 disabled
                                             />
                                         </div>
-
                                     </FormControl>
-
-
-
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -103,7 +89,6 @@ const RegisterPassword = () => {
                                             {...field}
                                         />
                                     </FormControl>
-
                                     {showPassword ? (
                                         <EyeOff
                                             className="absolute right-3 h-5 w-5 stroke-custom-text-300 hover:cursor-pointer"
@@ -119,8 +104,7 @@ const RegisterPassword = () => {
                                 </FormItem>
                             )}
                         />
-
-                        <Button type='submit' variant={"default"} size={"lg"} className='border-custom-primary-100 text-white  w-full'>
+                        <Button type='submit' variant={"default"} size={"lg"} loading={isSubmitting} disabled={isSubmitting || !isValid} className='border-custom-primary-100 text-white  w-full'>
                             Continuar
                         </Button>
                         <Button type='button' onClick={() => route.push('/onboarding')} variant={"outline"} size={"lg"} className='border-custom-primary-1000 text-custom-primary-1000  w-full'>
@@ -131,7 +115,6 @@ const RegisterPassword = () => {
             </div>
         </>
     )
-
 }
 
 export default RegisterPassword

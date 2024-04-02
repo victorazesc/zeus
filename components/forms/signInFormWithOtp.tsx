@@ -8,12 +8,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { XCircle } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { User } from "@prisma/client";
 import useTimer from "@/hooks/use-timer";
 import { toast } from "sonner";
+import { AuthService } from "@/services/auth.service";
+import { UserService } from "@/services/user.service";
 
 
 interface Props {
@@ -22,6 +22,9 @@ interface Props {
     handleEmailClear: () => void;
     submitButtonText: string;
 };
+
+const authService = new AuthService();
+const userService = new UserService();
 
 const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear, submitButtonText }) => {
 
@@ -41,55 +44,37 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
 
 
     const handleUniqueCodeSignIn = async (values: z.infer<typeof SignInWithOtpSchema>) => {
-        try {
-            const result = await signIn('auth-magic', { magicToken: values.otp, email: values.email, redirect: false })
-
-            if (result?.error) {
-                throw new Error(result?.error)
-            }
-
-            const response = await fetch(`/api/me`, {
-                method: 'GET'
+        await authService.magicSignIn({ email: values.email, token: values.otp })
+            .then(async () => {
+                const currentUser = await userService.currentUser();
+                await onSubmit(currentUser.isAccessPassword);
+                if (currentUser.isAccessPassword) {
+                    route.push('/onboarding')
+                }
             })
-            const user = await response.json() as User
-
-            await onSubmit(user.isAccessPassword);
-
-            if (user.isAccessPassword) {
-                route.push('/onboarding')
-            }
-
-        } catch (error: Error | any) {
-            toast.error("Ah, não! algo deu errado.", {
-                description: error.message ?? "Houve um problema com a sua requisição.",
-            })
-        }
+            .catch((error) =>
+                toast.error("Ah, não! algo deu errado.", {
+                    description: error.message ?? "Houve um problema com a sua requisição.",
+                })
+            );
     }
 
     const handleSendNewCode = async (values: z.infer<typeof SignInWithOtpSchema>) => {
-        try {
-            const response = await fetch(`/api/magic-generate`, {
-                method: 'POST',
-                body: JSON.stringify({ email: values.email })
+
+        await authService.generateUniqueCode({ email: values.email })
+            .then(() => {
+                setResendCodeTimer(30);
+                toast.success("Sucesso!", { description: "Um novo código exclusivo foi enviado para seu e-mail." })
+                reset({
+                    email: values.email,
+                    otp: "",
+                });
             })
-
-            if (!response) {
-                throw new Error("Não foi possivel gerar um código, tente novamente.")
-            }
-
-            setResendCodeTimer(30);
-            toast.success("Sucesso!", { description: "Um novo código exclusivo foi enviado para seu e-mail." })
-            reset({
-                email: values.email,
-                otp: "",
-            });
-        } catch (error: Error | any) {
-            toast.error("Ah, não! algo deu errado.", {
-                description: error.message ?? "Houve um problema com a sua requisição.",
-            })
-        }
-
-
+            .catch((error) =>
+                toast.error("Ah, não! algo deu errado.", {
+                    description: error.message ?? "Houve um problema com a sua requisição.",
+                })
+            );
     };
 
     const handleRequestNewCode = async () => {

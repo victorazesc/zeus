@@ -9,12 +9,16 @@ import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { XCircle } from "lucide-react";
 import { GoogleSignInButton } from "../ui/google-sign-in";
+import { IEmailCheckData } from "@/types/auth";
+import { AuthService } from "@/services/auth.service";
 
 
 type Props = {
     onSubmit: (isAccessPassword: boolean) => void;
     updateEmail: React.Dispatch<React.SetStateAction<string>>;
 };
+
+const authService = new AuthService();
 
 export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
 
@@ -29,20 +33,19 @@ export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
     const { handleSubmit, formState: { errors, isSubmitting, isValid } } = form
 
     const handleFormSubmit = async (values: z.infer<typeof SignInSchema>) => {
-        try {
-            const response = await fetch(`/api/email-check`, {
-                method: 'POST',
-                body: JSON.stringify({ email: values.email })
-            })
-            const res = await response.json()
-            onSubmit(res.isAccessPassword)
-            updateEmail(values.email);
-        } catch (e) {
-            console.error(e)
-            toast.error("Ah, não! algo deu errado.", {
-                description: "Houve um problema com a sua requisição.",
-            })
-        }
+        const payload: IEmailCheckData = {
+            email: values.email,
+        };
+        updateEmail(values.email);
+
+        await authService
+            .emailCheck(payload)
+            .then((res) => onSubmit(res.isAccessPassword))
+            .catch((err) =>
+                toast.error("Ah, não! algo deu errado.", {
+                    description: err?.error ?? "Houve um problema com a sua requisição.",
+                })
+            );
     }
 
     return (

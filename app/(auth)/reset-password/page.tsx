@@ -7,15 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { AuthService } from "@/services/auth.service";
 
-interface Props {
-    email: string
-}
+const authService = new AuthService()
 
 const Page = ({ searchParams }: any) => {
     const route = useRouter()
@@ -23,7 +21,6 @@ const Page = ({ searchParams }: any) => {
     const token = searchParams.token
     const email = searchParams.email
 
-    const { update, data: session } = useSession() as any
     const [showPassword, setShowPassword] = useState(false);
     const form = useForm<z.infer<typeof SignInWithPasswordSchema>>({
         resolver: zodResolver(SignInWithPasswordSchema),
@@ -35,52 +32,21 @@ const Page = ({ searchParams }: any) => {
 
     const { handleSubmit, formState: { errors, isSubmitting, isValid } } = form
 
-    const [error, setError] = useState<string | null>(null)
-    const onSubmit = async (values: z.infer<typeof SignInWithPasswordSchema>) => {
-
-        await fetch(`/api/me/set-password`, {
-            method: 'PATCH',
-            body: JSON.stringify({ password: values.password })
-        })
-
-        await update({
-            ...session,
-            user: {
-                ...session?.user,
-                isAccessPassword: true,
-
-            },
-        });
-
-
-        route.push('/onboarding')
-
-    }
-
     const handleResetPassword = async (values: z.infer<typeof SignInWithPasswordSchema>) => {
-        try {
-            if (!token || !email) return;
+        if (!token || !email) return;
+        await authService.magicSignIn({ email: values.email, token })
+            .then(async () => {
+                const response = await authService.setPassword({ password: values.password });
 
-            const result = await signIn('auth-magic', { magicToken: token, email: values.email, redirect: false })
-
-            if (result?.error) {
-                throw new Error(result?.error)
-            }
-
-            const response = await fetch(`/api/me/set-password`, {
-                method: 'PATCH',
-                body: JSON.stringify({ password: values.password })
+                if (response) {
+                    route.push('/onboarding')
+                }
             })
-
-            if (response) {
-                route.replace('onboarding')
-            }
-        } catch (error: any) {
-            console.error(error)
-            toast.error("Ah, não! algo deu errado.", {
-                description: error.message ?? "Houve um problema com a sua requisição.",
-            })
-        }
+            .catch((error) =>
+                toast.error("Ah, não! algo deu errado.", {
+                    description: error.message ?? "Houve um problema com a sua requisição.",
+                })
+            );
 
     };
 
