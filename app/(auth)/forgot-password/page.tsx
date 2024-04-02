@@ -50,7 +50,7 @@ export default function Page({ searchParams }: any) {
                     <p className="mt-2.5 text-center text-sm text-onboarding-text-200"> Obtenha um link para redefinir sua senha      </p>
                     <Form {...form}>
                         <form
-                            className='mx-auto mt-8 space-y-4 sm:w-96'
+                            className='mx-auto mt-8 space-y-4 w-full sm:w-96'
                             onSubmit={handleSubmit(handleForgotPassword)}
                         >
                             <FormField

@@ -111,7 +111,7 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
                 </p>
                 <Form {...form}>
                     <form
-                        className='mx-auto mt-8 space-y-4 sm:w-96'
+                        className='mx-auto mt-8 space-y-4 w-full sm:w-96'
                         onSubmit={handleSubmit(handleUniqueCodeSignIn)}
                     >
                         <FormField

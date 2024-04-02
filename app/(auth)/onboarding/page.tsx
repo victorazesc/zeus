@@ -23,9 +23,11 @@ export default function Page() {
             redirect('/')
         }
         return (<>
-            <h1>Onboarding</h1>
-            <pre>{JSON.stringify(data, null, 2)}</pre>
-            <BtnLogout />
+            <section className="h-full overflow-auto rounded-t-md bg-custom-auth-background-100 px-7 pb-56 pt-24 sm:px-0">
+                <h1>Onboarding</h1>
+                <pre>{JSON.stringify(data, null, 2)}</pre>
+                <BtnLogout />
+            </section>
         </>)
     }
 

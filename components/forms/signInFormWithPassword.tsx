@@ -11,6 +11,7 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import ESignInSteps from "@/constants/enums/signInSteps";
+import { useRouter } from "next/navigation";
 
 type Props = {
     email: string;
@@ -22,7 +23,7 @@ type Props = {
 export const SignInFormWithPassword: React.FC<Props> = ({ email, handleStepChange, handleEmailClear, onSubmit }: Props) => {
     const [showPassword, setShowPassword] = useState(false);
     const [isSendingUniqueCode, setIsSendingUniqueCode] = useState(false);
-
+    const router = useRouter()
     const form = useForm<z.infer<typeof SignInWithPasswordSchema>>({
         resolver: zodResolver(SignInWithPasswordSchema),
         defaultValues: {
@@ -79,7 +80,7 @@ export const SignInFormWithPassword: React.FC<Props> = ({ email, handleStepChang
                 </p>
                 <Form {...form}>
                     <form
-                        className='mx-auto mt-8 space-y-4 sm:w-96'
+                        className='mx-auto mt-8 space-y-4 w-full sm:w-96'
                         onSubmit={handleSubmit(handleFormSubmit)}
                     >
                         <FormField
@@ -125,7 +126,7 @@ export const SignInFormWithPassword: React.FC<Props> = ({ email, handleStepChang
                                     <div className="w-full text-right">
                                         <button
                                             type="button"
-                                            // onClick={handleRequestNewCode}
+                                            onClick={() => { router.push(`/forgot-password?email=${getValues('email')}`) }}
                                             className={`text-xs text-auth-text-200 hover:text-custom-primary-100"
                                             }`}
                                         >

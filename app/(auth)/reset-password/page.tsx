@@ -91,11 +91,11 @@ const Page = ({ searchParams }: any) => {
             <section className="h-full overflow-auto rounded-t-md bg-custom-auth-background-100 px-7 pb-56 pt-24 sm:px-0">
                 <div className="mx-auto flex flex-col">
                     <h1 className="sm:text-2.5xl text-center text-2xl font-medium text-auth-text-100">
-                        Vamos obter uma nova senha</h1>
+                        Defina uma nova senha</h1>
 
                     <Form {...form}>
                         <form
-                            className='mx-auto mt-8 space-y-4 sm:w-96'
+                            className='mx-auto mt-8 space-y-4 w-full sm:w-96'
                             onSubmit={handleSubmit(handleResetPassword)}
                         >
                             <FormField
