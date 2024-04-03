@@ -12,6 +12,9 @@ import { Button } from "../ui/button";
 import { User } from "@prisma/client";
 import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
 import { z } from "zod";
+import { WorkspaceService } from "@/services/workspace.service";
+import { RESTRICTED_URLS } from "@/constants/workspace";
+import { TOnboardingSteps } from "@/types/user";
 // constants
 
 type Props = {
@@ -25,7 +28,7 @@ type Props = {
 };
 
 // services
-// const workspaceService = new WorkspaceService();
+const workspaceService = new WorkspaceService();
 
 export const WorkspaceForm: React.FC<Props> = (props) => {
     const { stepChange, user, control, handleSubmit, setValue, errors, isSubmitting } = props;
@@ -33,8 +36,58 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
     const [slugError, setSlugError] = useState(false);
     const [invalidSlug, setInvalidSlug] = useState(false);
 
+
+    const handleCreateWorkspace = async (formData: z.infer<typeof WorkspaceCreateSchema>) => {
+        if (isSubmitting) return;
+
+        await workspaceService
+            .workspaceSlugCheck(formData.slug)
+            .then(async (res) => {
+                if (res.status === true && !RESTRICTED_URLS.includes(formData.slug)) {
+                    setSlugError(false);
+
+                    await workspaceService.createWorkspace(formData)
+                        .then(async (res) => {
+                            toast.success("Success!", {
+                                description: "Workspace created successfully.",
+                            });
+
+                            // await fetchWorkspaces();
+                            await completeStep();
+                        })
+                        .catch(() => {
+                            toast.error("Error!", {
+                                description: "Workspace could not be created. Please try again.",
+                            });
+                        });
+                } else setSlugError(true);
+            })
+            .catch(() =>
+                toast.error("Error!", {
+                    description: "Some error occurred while creating workspace. Please try again.",
+                })
+            );
+    };
+
+    const completeStep = async () => {
+        if (!user) return;
+
+        // const firstWorkspace = Object.values(workspaces ?? {})?.[0];
+
+        const payload: Partial<TOnboardingSteps> = {
+            workspace_create: true,
+            workspace_join: true,
+        };
+
+        await stepChange(payload);
+        // await updateCurrentUser({
+        //     last_workspace_id: firstWorkspace?.id,
+        // });
+    };
+
+
     return (
-        <form className="mt-5 md:w-2/3" onSubmit={handleSubmit(() => { })}>
+        <form className="mt-5 md:w-2/3" onSubmit={handleSubmit(handleCreateWorkspace)}>
             <div className="mb-5">
                 <p className="mb-1 text-base text-custom-text-400">Diga..</p>
                 <Controller
