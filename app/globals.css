@@ -125,3 +125,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  font-variant-ligatures: none;
+  -webkit-font-variant-ligatures: none;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+.focus-visible\:ring-ring:focus-visible {
+  --tw-ring-color: hsl(222.2deg 84% 4.9% / 0%) !important;
+}
