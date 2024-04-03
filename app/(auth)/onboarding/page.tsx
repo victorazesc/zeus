@@ -16,6 +16,7 @@ import { Prisma, User } from "@prisma/client";
 import { JoinWorkspaces } from "@/components/onboarding/joinWorkspace";
 import useSWR from 'swr'
 import { WorkspaceService } from "@/services/workspace.service";
+import { UserDetails } from "@/components/onboarding/UserDetails";
 
 const workspaceService = new WorkspaceService()
 
@@ -140,8 +141,8 @@ export default function Page() {
                             stepChange={stepChange}
                         />
                     ) : step === 2 ? (
-                        <h1>user details</h1>
-                        // <UserDetails setUserName={(value) => setValue("full_name", value)} user={user} />
+                        // <h1>user details</h1>
+                        <UserDetails setUserName={(value) => setValue("name", value)} user={data.user} workspacesList={workspacesList} />
                     ) : (
                         <h1>envites</h1>
                         // <InviteMembers

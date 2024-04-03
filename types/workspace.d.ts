@@ -9,13 +9,13 @@ import type {
 export interface IWorkspace {
   readonly id: string;
   readonly owner: IUser;
-  readonly created_at: Date;
-  readonly updated_at: Date;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
   name: string;
   url: string;
   logo: string | null;
   slug: string;
-  readonly total_members: number;
+  readonly totalMembers: number;
   readonly slug: string;
   readonly created_by: string;
   readonly updated_by: string;
