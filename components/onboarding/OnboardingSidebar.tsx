@@ -1,10 +1,11 @@
-import { BriefcaseBusiness, ChevronDown, Home, LayoutDashboard, NotebookPen, ShoppingCart, UsersIcon, Wallet } from "lucide-react"
+import { BriefcaseBusiness, ChevronDown, LayoutDashboard, NotebookPen, ShoppingCart, UsersIcon, Wallet } from "lucide-react"
 
 import { useSession } from "next-auth/react";
 import { SessionContextValue } from "@/types/user";
 import { Control, Controller, UseFormSetValue, UseFormWatch } from "react-hook-form";
-import { IWorkspace } from "@/types/workspace";
 import { Avatar } from "../ui/avatar/avatar";
+import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
+import { z } from "zod";
 
 const workspaceLinks = [
     {
@@ -36,9 +37,9 @@ const workspaceLinks = [
 type Props = {
     workspaceName: string;
     showProject: boolean;
-    control?: Control<IWorkspace, any>;
-    setValue?: UseFormSetValue<IWorkspace>;
-    watch?: UseFormWatch<IWorkspace>;
+    control?: Control<z.infer<typeof WorkspaceCreateSchema>, any>;
+    setValue?: UseFormSetValue<z.infer<typeof WorkspaceCreateSchema>>;
+    watch?: UseFormWatch<z.infer<typeof WorkspaceCreateSchema>>;
     userFullName?: string;
 };
 

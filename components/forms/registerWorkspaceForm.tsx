@@ -10,16 +10,17 @@ import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { User } from "@prisma/client";
-import { IWorkspace } from "@/types/workspace";
+import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
+import { z } from "zod";
 // constants
 
 type Props = {
-    // stepChange: (steps: Partial<any>) => Promise<void>;
+    stepChange: (steps: Partial<any>) => Promise<void>;
     user: User | undefined;
-    control: Control<IWorkspace, any>;
-    handleSubmit: UseFormHandleSubmit<IWorkspace, undefined>;
-    errors: FieldErrors<IWorkspace>;
-    setValue: UseFormSetValue<IWorkspace>;
+    control: Control<z.infer<typeof WorkspaceCreateSchema>, any>;
+    handleSubmit: UseFormHandleSubmit<z.infer<typeof WorkspaceCreateSchema>, undefined>;
+    errors: FieldErrors<z.infer<typeof WorkspaceCreateSchema>>;
+    setValue: UseFormSetValue<z.infer<typeof WorkspaceCreateSchema>>;
     isSubmitting: boolean;
 };
 
@@ -27,76 +28,10 @@ type Props = {
 // const workspaceService = new WorkspaceService();
 
 export const WorkspaceForm: React.FC<Props> = (props) => {
-    const { user, control, handleSubmit, setValue, errors, isSubmitting } = props;
+    const { stepChange, user, control, handleSubmit, setValue, errors, isSubmitting } = props;
     // states
     const [slugError, setSlugError] = useState(false);
     const [invalidSlug, setInvalidSlug] = useState(false);
-    // store hooks
-    // const { updateCurrentUser } = useUser();
-    // const { createWorkspace, fetchWorkspaces, workspaces } = useWorkspace();
-    // const { captureWorkspaceEvent } = useEventTracker();
-
-    // const handleCreateWorkspace = async (formData: IWorkspace) => {
-    //     if (isSubmitting) return;
-
-    //     await workspaceService
-    //         .workspaceSlugCheck(formData.slug)
-    //         .then(async (res) => {
-    //             if (res.status === true && !RESTRICTED_URLS.includes(formData.slug)) {
-    //                 setSlugError(false);
-
-    //                 await createWorkspace(formData)
-    //                     .then(async (res) => {
-    //                         toast.success("Success!"
-
-    //                         );
-    //                         captureWorkspaceEvent({
-    //                             eventName: WORKSPACE_CREATED,
-    //                             payload: {
-    //                                 ...res,
-    //                                 state: "SUCCESS",
-    //                                 first_time: true,
-    //                                 element: "Onboarding",
-    //                             },
-    //                         });
-    //                         await fetchWorkspaces();
-    //                         await completeStep();
-    //                     })
-    //                     .catch(() => {
-    //                         captureWorkspaceEvent({
-    //                             eventName: WORKSPACE_CREATED,
-    //                             payload: {
-    //                                 state: "FAILED",
-    //                                 first_time: true,
-    //                                 element: "Onboarding",
-    //                             },
-    //                         });
-    //                         toast.error("Error!"
-    //                         );
-    //                     });
-    //             } else setSlugError(true);
-    //         })
-    //         .catch(() =>
-    //             toast("Error!"
-    //             )
-    //         );
-    // };
-
-    // const completeStep = async () => {
-    //     if (!user || !workspaces) return;
-
-    //     const firstWorkspace = Object.values(workspaces ?? {})?.[0];
-
-    //     const payload: Partial<TOnboardingSteps> = {
-    //         workspace_create: true,
-    //         workspace_join: true,
-    //     };
-
-    //     await stepChange(payload);
-    //     await updateCurrentUser({
-    //         last_workspace_id: firstWorkspace?.id,
-    //     });
-    // };
 
     return (
         <form className="mt-5 md:w-2/3" onSubmit={handleSubmit(() => { })}>
@@ -105,15 +40,6 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                 <Controller
                     control={control}
                     name="name"
-                    rules={{
-                        required: "Workspace name is required",
-                        validate: (value) =>
-                            /^[\w\s-]*$/.test(value) || `Name can only contain (" "), ( - ), ( _ ) & alphanumeric characters.`,
-                        maxLength: {
-                            value: 80,
-                            message: "Workspace name should not exceed 80 characters",
-                        },
-                    }}
                     render={({ field: { value, ref, onChange } }) => (
                         <div className="relative flex items-center rounded-md bg-onboarding-background-200">
                             <Input
@@ -128,13 +54,11 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                                 }}
                                 placeholder="Enter workspace name..."
                                 ref={ref}
-                                // hasError={Boolean(errors.name)}
                                 className="h-[46px] w-full border-onboarding-border-100 text-base placeholder:text-base placeholder:text-custom-text-400/50"
                             />
                         </div>
                     )}
                 />
-                {/* {errors.name && <span className="text-sm text-red-500">{errors.name.message}</span>} */}
                 <p className="mb-1 mt-4 text-base text-custom-text-400">Você pode editar o slug.</p>
                 <Controller
                     control={control}
@@ -155,7 +79,6 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                                     onChange(e.target.value.toLowerCase());
                                 }}
                                 ref={ref}
-                                // hasError={Boolean(errors.slug)}
                                 className="h-[46px] w-full outline-none border-none shadow-none !px-0"
                             />
                         </div>

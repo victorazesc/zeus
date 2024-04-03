@@ -17,3 +17,9 @@ export interface ISession {
     user: User
 }
 
+export type TOnboardingSteps = {
+    profile_complete: boolean;
+    workspace_create: boolean;
+    workspace_invite: boolean;
+    workspace_join: boolean;
+};

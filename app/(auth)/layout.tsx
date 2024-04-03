@@ -8,7 +8,7 @@ import { Suspense } from "react";
 export default async function RootLayout({ children }: any) {
     return (
         <>
-            <div className="h-screen w-full overflow-hidden bg-custom-background-100">
+            <div className="h-screen w-full overflow-hidden bg-custom-background-100 relative">
                 <div className="h-full w-full bg-onboarding-gradient-100">
                     <div className="flex items-center justify-between px-8 pb-4 sm:px-16 sm:py-5 lg:px-28">
                         <div className="flex items-center gap-x-2 py-5">
