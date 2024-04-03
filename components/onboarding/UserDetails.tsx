@@ -69,9 +69,9 @@ export const UserDetails: React.FC<Props> = observer((props) => {
     formState: { errors, isSubmitting, isValid },
   } = useForm<any>({
     defaultValues: {
-      name: "",
-      avatar: "",
-      useCase: ""
+      name: user?.name ?? "",
+      avatar: user?.avatar ?? "",
+      useCase: user?.useCase ?? ""
     },
     mode: "onChange",
   });
