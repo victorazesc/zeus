@@ -54,7 +54,7 @@ const Page = ({ searchParams }: any) => {
 
     return (
         <>
-            <section className="h-full overflow-auto rounded-t-md bg-custom-auth-background-100 px-7 pb-56 pt-24 sm:px-0">
+            <section className="h-full overflow-auto rounded-t-md bg-custom-background-90 px-7 pb-56 pt-24 sm:px-0">
                 <div className="mx-auto flex flex-col">
                     <h1 className="sm:text-2.5xl text-center text-2xl font-medium text-auth-text-100">
                         Defina uma nova senha</h1>

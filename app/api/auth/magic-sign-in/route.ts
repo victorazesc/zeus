@@ -1,5 +1,5 @@
-import { sendOtpEmail } from "@/lib/actions/notify.action"
-import { validadeOtpAndSingIn, verifyUser } from "@/lib/actions/user.action"
+import { sendOtpEmail } from "@/actions/notify.action"
+import { validadeOtpAndSingIn, verifyUser } from "@/actions/user.action"
 import { NextResponse } from "next/server"
 
 export async function POST(_request: Request) {

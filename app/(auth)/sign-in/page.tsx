@@ -41,7 +41,7 @@ export default function Page() {
         </div>)
     } else {
         return (
-            <section className="h-full overflow-auto rounded-t-md bg-custom-auth-background-100 px-7 pb-56 pt-24 sm:px-0">
+            <section className="h-full overflow-auto rounded-t-md bg-custom-background-90 px-7 pb-56 pt-24 sm:px-0">
                 {status === 'authenticated' ?
 
                     <>

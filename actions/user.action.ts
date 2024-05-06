@@ -1,10 +1,10 @@
 import { kv } from "@vercel/kv";
-import prisma from "../prisma";
-import { User } from "@prisma/client";
+import prisma from "../lib/prisma";
+import { Prisma, User } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { JWT, getToken } from "next-auth/jwt";
-import { comparePasswords, hashPassword } from "../auth";
-import { signJwtAccessToken } from "../jwt";
+import { comparePasswords, hashPassword } from "../lib/auth";
+import { signJwtAccessToken } from "../lib/jwt";
 import { signIn } from "next-auth/react";
 import { GoogleProfile } from "next-auth/providers/google";
 
@@ -41,6 +41,21 @@ export async function createUser({ email, isSocialAuth, avatar, name }: IcreateU
 
 }
 
+export async function updateCurrentUser({ req, data }: { req: NextRequest, data: User }) {
+    try {
+        const currentUser = await getMe(req)
+
+        return await prisma.user.update({
+            where: {
+                email: currentUser.email
+            },
+            data: { ...data }
+        })
+    } catch (error: any) {
+        throw new Error(error)
+    }
+}
+
 export async function verifyUser({
     email
 }: {
@@ -60,9 +75,7 @@ export async function verifyUser({
     }
 }
 
-
 export async function validadeOtpAndSingUp() {
-
 }
 
 export async function validadeOtpAndSingIn({ email, inputedOtp }: { email: string, inputedOtp?: string }) {
@@ -134,6 +147,7 @@ export async function signWithPassword({ email, sendedPassword }: { email?: stri
 export async function getMe(req: NextRequest) {
     try {
         const session = await getToken({ req }) as User
+        console.log(session)
         if (!session) throw new Error('Usuario não autenticado.')
 
         return session

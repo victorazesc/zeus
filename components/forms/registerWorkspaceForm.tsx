@@ -9,12 +9,14 @@ import { Control, Controller, FieldErrors, UseFormHandleSubmit, UseFormSetValue 
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { User } from "@prisma/client";
+import { Prisma, User } from "@prisma/client";
 import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
 import { z } from "zod";
 import { WorkspaceService } from "@/services/workspace.service";
 import { RESTRICTED_URLS } from "@/constants/workspace";
-import { TOnboardingSteps } from "@/types/user";
+import { SessionContextValue, TOnboardingSteps } from "@/types/user";
+import { UserService } from "@/services/user.service";
+import { useSession } from "next-auth/react";
 // constants
 
 type Props = {
@@ -29,12 +31,14 @@ type Props = {
 
 // services
 const workspaceService = new WorkspaceService();
+const userService = new UserService();
 
 export const WorkspaceForm: React.FC<Props> = (props) => {
     const { stepChange, user, control, handleSubmit, setValue, errors, isSubmitting } = props;
     // states
     const [slugError, setSlugError] = useState(false);
     const [invalidSlug, setInvalidSlug] = useState(false);
+    const { status, data, update } = useSession() as SessionContextValue
 
 
     const handleCreateWorkspace = async (formData: z.infer<typeof WorkspaceCreateSchema>) => {
@@ -48,6 +52,34 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
 
                     await workspaceService.createWorkspace(formData)
                         .then(async (res) => {
+
+                            const payload = {
+                                onboardingStep: {
+                                    ...data?.user?.onboardingStep as Prisma.JsonObject,
+                                    workspace_join: true,
+                                    workspace_create: true,
+                                },
+                            };
+
+
+                            await userService.updateMe(payload)
+                                .then(async () => {
+                                    await update({
+                                        ...data,
+                                        user: {
+                                            ...data?.user,
+                                            ...payload
+                                        },
+                                    });
+                                })
+                                .catch(() => {
+                                    toast.error("Error!", {
+                                        description: "Erro ao atualizar dados do usuario",
+                                    });
+                                });
+
+
+
                             toast.success("Success!", {
                                 description: "Workspace created successfully.",
                             });
@@ -137,9 +169,9 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                         </div>
                     )}
                 />
-                {slugError && <span className="-mt-3 text-sm text-red-500">Workspace URL is already taken!</span>}
+                {slugError && <span className="-mt-3 text-sm text-red-500">O URL do espaço de trabalho já está em uso!</span>}
                 {invalidSlug && (
-                    <span className="text-sm text-red-500">{`URL can only contain ( - ), ( _ ) & alphanumeric characters.`}</span>
+                    <span className="text-sm text-red-500">{`O URL só pode conter ( - ), ( _ ) e caracteres alfanuméricos.`}</span>
                 )}
             </div>
             <Button className="text-white" type="submit">

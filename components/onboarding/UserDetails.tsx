@@ -3,13 +3,16 @@ import { observer } from "mobx-react-lite";
 import Image from "next/image";
 import { Controller, useForm } from "react-hook-form";
 import { Camera, User as User2, User2Icon } from "lucide-react";
-import { User, Workspace } from "@prisma/client";
+import { Prisma, User, Workspace } from "@prisma/client";
 import { OnboardingStepIndicator } from "./StepIndicator";
 import { OnboardingSidebar } from "./OnboardingSidebar";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { z } from "zod";
 import { IWorkspace } from "@/types/workspace";
+import { UserService } from "@/services/user.service";
+import { useSession, SessionContextValue } from "next-auth/react";
+import { UserImageUploadModal } from "../modals/user-image-upload-modal";
 
 
 const defaultValues: Partial<User> = {
@@ -25,45 +28,28 @@ type Props = {
 };
 
 const USE_CASES = [
-  "Build Products",
-  "Manage Feedbacks",
-  "Service delivery",
-  "Field force management",
-  "Code Repository Integration",
-  "Bug Tracking",
-  "Test Case Management",
-  "Resource allocation",
+  "Controle de Clientes",
+  "Vendas",
+  "Controle de estoque",
+  "Controle orçamentário",
+  "Gestão de negócio"
 ];
 
+const userService = new UserService();
 // const fileService = new FileService();
 
 export const UserDetails: React.FC<Props> = observer((props) => {
   const { user, setUserName, workspacesList } = props;
+  const { status, data, update } = useSession() as SessionContextValue
   // states
   const [isRemoving, setIsRemoving] = useState(false);
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
-  // store hooks
-  // const { updateCurrentUser } = useUser();
-  // const { workspaces } = useWorkspace();
-  // const { captureEvent } = useEventTracker();
-  // derived values
   const workspaceName = workspacesList ? workspacesList[0]?.name : "New Workspace";
-  // form info
-  // const {
-  //   getValues,
-  //   handleSubmit,
-  //   control,
-  //   watch,
-  //   setValue,
-  //   formState: { errors, isSubmitting, isValid },
-  // } = useForm<User>({
-  //   defaultValues,
-  //   mode: "onChange",
-  // });
 
   const {
     handleSubmit,
     control,
+    getValues,
     setValue,
     watch,
     formState: { errors, isSubmitting, isValid },
@@ -76,35 +62,50 @@ export const UserDetails: React.FC<Props> = observer((props) => {
     mode: "onChange",
   });
 
-
   const onSubmit = async (formData: User) => {
     if (!user) return;
 
-    // const payload: Partial<User> = {
-    //   ...formData,
-    //   name: formData.name,
-    //   onboardingStep: {
-    //     ...user.onboardingStep,
-    //     profile_complete: true,
-    //   },
-    // };
+    const payload: Partial<User> = {
+      ...formData,
+      name: formData.name,
+      onboardingStep: {
+        ...user.onboardingStep as Prisma.JsonObject,
+        profile_complete: true,
+      },
+    };
 
-    // await updateCurrentUser(payload)
-    //   .then(() => {
-    //     // captureEvent(USER_DETAILS, {
-    //     //   use_case: formData.use_case,
-    //     //   state: "SUCCESS",
-    //     //   element: "Onboarding",
-    //     // });
-    //   })
-    //   .catch(() => {
-    //     // captureEvent(USER_DETAILS, {
-    //     //   use_case: formData.use_case,
-    //     //   state: "FAILED",
-    //     //   element: "Onboarding",
-    //     // });
-    //   });
+    await userService.updateMe(payload)
+      .then(async () => {
+        await update({
+          ...data,
+          user: {
+            ...data?.user,
+            ...payload
+          },
+        });
+      })
+      .catch(() => {
+        // captureEvent(USER_DETAILS, {
+        //   use_case: formData.use_case,
+        //   state: "FAILED",
+        //   element: "Onboarding",
+        // });
+      });
   };
+  const handleDelete = async (url: string | null | undefined) => {
+    if (!url) return;
+    setIsRemoving(true);
+    await update({
+      ...user,
+      user: {
+        ...user,
+        avatar: ""
+      },
+    });
+    setValue("avatar", "");
+    setIsRemoving(false);
+  };
+
   // const handleDelete = (url: string | null | undefined) => {
   //   if (!url) return;
 
@@ -130,11 +131,13 @@ export const UserDetails: React.FC<Props> = observer((props) => {
           )}
         />
       </div>
-      {/* <Controller
+      <Controller
         control={control}
         name="avatar"
         render={({ field: { onChange, value } }) => (
           <UserImageUploadModal
+            currentUserUpdate={update}
+            currentUser={user}
             isOpen={isImageUploadModalOpen}
             onClose={() => setIsImageUploadModalOpen(false)}
             isRemoving={isRemoving}
@@ -146,7 +149,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
             value={value && value.trim() !== "" ? value : null}
           />
         )}
-      /> */}
+      />
       <div className="ml-auto flex w-full flex-col justify-between lg:w-2/3 ">
         <div className="mx-auto flex flex-col px-7 pt-3 md:px-0 lg:w-4/5">
           <form onSubmit={handleSubmit(onSubmit)} className="ml-auto  md:w-11/12">
@@ -157,11 +160,11 @@ export const UserDetails: React.FC<Props> = observer((props) => {
             <div className="mt-6 flex w-full ">
               <button type="button" onClick={() => setIsImageUploadModalOpen(true)}>
                 {!watch("avatar") || watch("avatar") === "" ? (
-                  <div className="relative mr-3 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-custom-text-100 hover:cursor-pointer">
-                    <div className="absolute -right-1 bottom-1 flex h-6 w-6 items-center justify-center rounded-full bg-custom-text-90">
-                      <Camera className="h-4 w-4 stroke-custom-text-200" />
+                  <div className="relative mr-3 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-custom-background-70 hover:cursor-pointer">
+                    <div className="absolute -right-1 bottom-1 flex h-6 w-6 items-center justify-center rounded-full bg-custom-background-80">
+                      <Camera className="h-4 w-4 stroke-custom-text-400" />
                     </div>
-                    <User2Icon className="h-10 w-10 stroke-custom-text-200" />
+                    <User2Icon className="h-10 w-10 stroke-custom-text-400" />
                   </div>
                 ) : (
                   <div className="relative mr-3 h-16 w-16 overflow-hidden">
@@ -181,7 +184,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
                     control={control}
                     name="name"
                     rules={{
-                      required: "Name is required",
+                      required: "Nome é obrigatório",
                       maxLength: {
                         value: 24,
                         message: "Name must be within 24 characters.",
@@ -199,14 +202,12 @@ export const UserDetails: React.FC<Props> = observer((props) => {
                           onChange(event);
                         }}
                         ref={ref}
-                        // hasError={Boolean(errors.name)}
-                        placeholder="Enter your full name..."
+                        placeholder="Escreva seu nome completo..."
                         className="w-full border-onboarding-border-100 focus:border-custom-primary-100"
                       />
                     )}
                   />
                 </div>
-                {/* {errors.name && <span className="text-sm text-red-500">{errors.name.message}</span>} */}
               </div>
             </div>
             <div className="mb-10 mt-14">
@@ -242,14 +243,10 @@ export const UserDetails: React.FC<Props> = observer((props) => {
               />
             </div>
 
-            <Button type="submit" disabled={!isValid} loading={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Continue"}
+            <Button type="submit" className="text-white" disabled={!isValid} loading={isSubmitting}>
+              Continuar
             </Button>
           </form>
-        </div>
-        <div className="relative bottom-0 ml-auto flex  justify-end md:w-11/12">
-          <h1>error</h1>
-          {/* <Image src={IssuesSvg} className="h-[w-2/3] w-2/3 object-cover" alt="issue-image" /> */}
         </div>
       </div>
     </div>

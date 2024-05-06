@@ -1,4 +1,4 @@
-import { getUserWorkspaces } from "@/lib/actions/workspace.action"
+import { getUserWorkspaces } from "@/actions/workspace.action"
 import { NextRequest, NextResponse } from "next/server"
 export const dynamic = 'force-dynamic'
 

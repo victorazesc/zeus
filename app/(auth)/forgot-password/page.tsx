@@ -40,7 +40,7 @@ export default function Page({ searchParams }: any) {
 
     return (
         <>
-            <section className="h-full overflow-auto rounded-t-md bg-custom-auth-background-100 px-7 pb-56 pt-24 sm:px-0">
+            <section className="h-full overflow-auto rounded-t-md bg-custom-background-90 px-7 pb-56 pt-24 sm:px-0">
                 <div className="mx-auto flex flex-col sm:w-96">
                     <h1 className="sm:text-2.5xl text-center text-2xl font-medium text-onboarding-text-100">
                         Não deixe de lado sua conta

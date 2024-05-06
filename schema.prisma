@@ -23,6 +23,7 @@ model User {
     isSocialAuth     Boolean     @default(false)
     isAccessPassword Boolean     @default(false)
     role             String?     @db.VarChar(15)
+    lastWorkspaceId  Int? // Tornando o campo opcional (pode ser nulo)
     useCase          String?     @db.VarChar(50)
     onboardingStep   Json        @default("{\"profile_complete\":false,\"workspace_create\":false,\"workspace_invite\":false,\"workspace_join\":false}")
     createdAt        DateTime    @default(now()) @db.Timestamp(6)

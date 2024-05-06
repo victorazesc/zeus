@@ -49,7 +49,7 @@ export const OnboardingSidebar: React.FC<Props> = (props) => {
     const { status, data, update } = useSession() as SessionContextValue
     return (
         <div className="fixed hidden h-full w-1/5 max-w-[320px] lg:block">
-            <div className="relative h-full border-r border-custom-text-100 ">
+            <div className="relative h-full border-r border-custom-border-100 ">
                 {control && setValue ? (
                     <div>
                         <Controller

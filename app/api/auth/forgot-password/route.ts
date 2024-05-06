@@ -1,6 +1,6 @@
 
-import { sendEmailLink, sendOtpEmail } from "@/lib/actions/notify.action";
-import { getuser, verifyUser } from "@/lib/actions/user.action";
+import { sendEmailLink, sendOtpEmail } from "@/actions/notify.action";
+import { getuser, verifyUser } from "@/actions/user.action";
 import { NextRequest, NextResponse } from "next/server"
 
 export async function POST(_request: NextRequest) {

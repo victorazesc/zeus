@@ -1,4 +1,4 @@
-import { createWorkspace } from "@/lib/actions/workspace.action";
+import { createWorkspace } from "@/actions/workspace.action";
 import { NextRequest, NextResponse } from "next/server"
 
 export async function POST(_request: NextRequest) {

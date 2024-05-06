@@ -1,6 +1,6 @@
 import NextAuth, { AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { signWithPassword, validadeOtpAndSingIn, validateGoogleSign } from "@/lib/actions/user.action";
+import { signWithPassword, validadeOtpAndSingIn, validateGoogleSign } from "@/actions/user.action";
 import GoogleProvider, { GoogleProfile } from "next-auth/providers/google";
 import { User } from "@prisma/client";
 

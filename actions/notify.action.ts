@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import transporter from "../nodemailer";
+import transporter from "../lib/nodemailer";
 import { kv } from "@vercel/kv";
 import { base64url } from "jose";
 import { User } from "@prisma/client";

@@ -7,7 +7,7 @@ import type {
 } from "@plane/types";
 
 export interface IWorkspace {
-  readonly id: string;
+  readonly id: number;
   readonly owner: IUser;
   readonly createdAt: Date;
   readonly updatedAt: Date;

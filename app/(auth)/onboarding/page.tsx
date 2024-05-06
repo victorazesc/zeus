@@ -17,17 +17,19 @@ import { JoinWorkspaces } from "@/components/onboarding/joinWorkspace";
 import useSWR from 'swr'
 import { WorkspaceService } from "@/services/workspace.service";
 import { UserDetails } from "@/components/onboarding/UserDetails";
+import { Worskspace } from "@/components/onboarding/Workspace";
+import useUserAuth from "@/hooks/use-user-auth";
 
 const workspaceService = new WorkspaceService()
 
 export default function Page() {
-
     const { status, data, update } = useSession() as SessionContextValue
-    const [step, setStep] = useState<number | null>(2);
+    
+
+    const [step, setStep] = useState<number | null>(null);
     const { data: workspaces } = useSWR(`USER_WORKSPACES_LIST`, async () => (await workspaceService.userWorkspaces()), {
         shouldRetryOnError: false,
     });
-
     const workspacesList = Object.values(workspaces ?? {});
 
     const {
@@ -74,6 +76,8 @@ export default function Page() {
     };
 
     useEffect(() => {
+        const { } = useUserAuth({ routeAuth: "onboarding", user: data?.user, isLoading: status === 'loading' });
+
         const handleStepChange = async () => {
             if (!data?.user) return;
 
@@ -109,50 +113,48 @@ export default function Page() {
             )
                 setStep(3);
         };
-
         handleStepChange();
     }, [data?.user, step, workspacesList]);
 
-
-
-    if (status === 'loading') {
-        return (<div className="grid fixed bg-white top-0 left-0 right-0 h-screen place-items-center">
-            <Spinner />
-        </div>)
+    if (!data?.user) {
+        redirect('/sign-in')
     }
-    else {
-        if (!data?.user) {
-            redirect('/sign-in')
-        }
 
-        if (data.user.isOnbordered) {
-            redirect('/')
-        }
-        return (
-            <>
-                <div className="absolute top-12 right-36 text-white"><Button onClick={() => { signOut() }}>sair</Button></div>
-                <div className="flex w-full">
-                    {step === 1 ? (
-                        <JoinWorkspaces
-                            setTryDiffAccount={() => {
-                                // setShowDeleteAccountModal(true);
-                            }}
-                            finishOnboarding={finishOnboarding}
-                            stepChange={stepChange}
-                        />
-                    ) : step === 2 ? (
-                        // <h1>user details</h1>
-                        <UserDetails setUserName={(value) => setValue("name", value)} user={data.user} workspacesList={workspacesList} />
-                    ) : (
-                        <h1>envites</h1>
-                        // <InviteMembers
-                        //     finishOnboarding={finishOnboarding}
-                        //     stepChange={stepChange}
-                        //     user={user}
-                        //     workspace={workspacesList?.[0]}
-                        // />
-                    )}
-                    {/* {step == 1 && <JoinWorkspaces
+    if (data.user.isOnbordered) {
+        redirect('/')
+    }
+    return (
+        <>
+            <section className="h-full overflow-auto rounded-t-md bg-custom-background-90 px-0 pb-56 md:px-7">
+                {data.user && step !== null && workspaces ? (<>
+                    <div className="absolute top-12 right-36 text-white"><Button onClick={() => { signOut() }}>sair</Button></div>
+                    <div className="flex w-full">
+                        {step === 1 ? (
+                            <JoinWorkspaces
+                                setTryDiffAccount={() => {
+                                    // setShowDeleteAccountModal(true);
+                                }}
+                                finishOnboarding={finishOnboarding}
+                                stepChange={stepChange}
+                            />
+                        ) : step === 2 ? (
+                            <UserDetails setUserName={(value) => setValue("name", value)} user={data.user} workspacesList={workspacesList} />
+                        ) : (
+                            <Worskspace finishOnboarding={function (): Promise<void> {
+                                throw new Error("Function not implemented.");
+                            }} stepChange={function (steps: Partial<TOnboardingSteps>): Promise<void> {
+                                throw new Error("Function not implemented.");
+                            }} setTryDiffAccount={function (): void {
+                                throw new Error("Function not implemented.");
+                            }} />
+                            // <InviteMembers
+                            //     finishOnboarding={finishOnboarding}
+                            //     stepChange={stepChange}
+                            //     user={user}
+                            //     workspace={workspacesList?.[0]}
+                            // />
+                        )}
+                        {/* {step == 1 && <JoinWorkspaces
                         setTryDiffAccount={() => {
                             // setShowDeleteAccountModal(true);
                         }}
@@ -160,7 +162,7 @@ export default function Page() {
                         stepChange={stepChange}
                     />} */}
 
-                    {/* <div className="fixed hidden h-full w-1/5 max-w-[320px] lg:block">
+                        {/* <div className="fixed hidden h-full w-1/5 max-w-[320px] lg:block">
                         <Controller
                             control={control}
                             name="name"
@@ -191,10 +193,16 @@ export default function Page() {
                             />
                         </div>
                     </div> */}
-                </div>
-            </>
+                    </div>
+                </>) : (
+                    <div className="grid fixed bg-white top-0 left-0 right-0 h-screen place-items-center">
+                        <Spinner />
+                    </div>
+                )}
+            </section>
+        </>
 
-        )
-    }
-
+    )
 }
+
+// }

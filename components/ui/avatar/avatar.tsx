@@ -80,13 +80,22 @@ export const getSizeInfo = (size: TAvatarSize) => {
         spacing: "-space-x-1.5",
       };
     default:
-      return {
-        avatarSize: "h-5 w-5",
-        fontSize: "text-xs",
-        spacing: "-space-x-1",
-      };
+      if (typeof size === "number") {
+        return {
+          avatarSize: `h-[${size}] w-[${size}]`,
+          fontSize: size / 2,
+          spacing: "-space-x-1.5",
+        };
+      } else {
+        return {
+          avatarSize: "h-5 w-5",
+          fontSize: "text-xs",
+          spacing: "-space-x-1",
+        };
+      }
   }
 };
+
 
 /**
  * Get the border radius based on the shape prop
@@ -139,6 +148,7 @@ export const Avatar: React.FC<Props> = (props) => {
                 ? {
                   height: `${size}px`,
                   width: `${size}px`,
+                  background: "red"
                 }
                 : {}
             }
@@ -148,12 +158,13 @@ export const Avatar: React.FC<Props> = (props) => {
               <img src={src} className={`h-full w-full ${getBorderRadius(shape)} ${className}`} alt={name} />
             ) : (
               <div
-                className={`${sizeInfo.fontSize} grid h-full w-full place-items-center ${getBorderRadius(
+                className={`${!isAValidNumber(sizeInfo.fontSize) ? sizeInfo.fontSize : ""} grid h-full w-full place-items-center ${getBorderRadius(
                   shape
                 )} ${className}`}
                 style={{
                   backgroundColor: fallbackBackgroundColor ?? "rgba(var(--color-primary-500))",
                   color: fallbackTextColor ?? "#ffffff",
+                  ...(isAValidNumber(sizeInfo.fontSize) && { fontSize: sizeInfo.fontSize })
                 }}
               >
                 {name ? name[0].toUpperCase() : fallbackText ?? "?"}
