@@ -1,17 +1,16 @@
 "use client";
-
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { SignInWithPasswordSchema } from "@/lib/validations/user";
+import { AuthService } from "@/services/auth.service";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
-import { AuthService } from "@/services/auth.service";
 
 const authService = new AuthService()
 
@@ -36,7 +35,6 @@ const RegisterPassword = () => {
                 user: {
                     ...session?.user,
                     isAccessPassword: true,
-
                 },
             });
             route.push('/onboarding')

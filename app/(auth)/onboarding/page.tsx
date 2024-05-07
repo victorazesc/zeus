@@ -1,30 +1,25 @@
 "use client";
-import { Spinner } from "@/components/ui/circular-spinner"
-import { SessionContextValue, TOnboardingSteps } from "@/types/user";
-import { signOut, useSession } from "next-auth/react"
-import { redirect } from "next/navigation"
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { OnboardingSidebar } from "@/components/onboarding/OnboardingSidebar";
-import { IWorkspace } from "@/types/workspace";
-import { OnboardingStepIndicator } from "@/components/onboarding/StepIndicator";
-import { WorkspaceForm } from "@/components/forms/registerWorkspaceForm";
-import { z } from "zod";
-import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
-import { Button } from "@/components/ui/button";
-import { Prisma, User } from "@prisma/client";
-import { JoinWorkspaces } from "@/components/onboarding/joinWorkspace";
-import useSWR from 'swr'
-import { WorkspaceService } from "@/services/workspace.service";
 import { UserDetails } from "@/components/onboarding/UserDetails";
 import { Worskspace } from "@/components/onboarding/Workspace";
+import { JoinWorkspaces } from "@/components/onboarding/joinWorkspace";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/circular-spinner";
 import useUserAuth from "@/hooks/use-user-auth";
+import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
+import { WorkspaceService } from "@/services/workspace.service";
+import { SessionContextValue, TOnboardingSteps } from "@/types/user";
+import { User } from "@prisma/client";
+import { signOut, useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import useSWR from 'swr';
+import { z } from "zod";
 
 const workspaceService = new WorkspaceService()
 
 export default function Page() {
-    const { status, data, update } = useSession() as SessionContextValue
-    
+    const { status, data } = useSession() as SessionContextValue
 
     const [step, setStep] = useState<number | null>(null);
     const { data: workspaces } = useSWR(`USER_WORKSPACES_LIST`, async () => (await workspaceService.userWorkspaces()), {
@@ -58,26 +53,10 @@ export default function Page() {
 
     const finishOnboarding = async () => {
         if (!data?.user) return;
-
-        // await updateUserOnBoard()
-        //     .then(() => {
-        //         captureEvent(USER_ONBOARDING_COMPLETED, {
-        //             user_role: user.role,
-        //             email: user.email,
-        //             user_id: user.id,
-        //             status: "SUCCESS",
-        //         });
-        //     })
-        //     .catch((error) => {
-        //         console.log(error);
-        //     });
-
-        // router.replace(`/${workspacesList[0]?.slug}`);
     };
 
     useEffect(() => {
         const { } = useUserAuth({ routeAuth: "onboarding", user: data?.user, isLoading: status === 'loading' });
-
         const handleStepChange = async () => {
             if (!data?.user) return;
 
@@ -132,7 +111,6 @@ export default function Page() {
                         {step === 1 ? (
                             <JoinWorkspaces
                                 setTryDiffAccount={() => {
-                                    // setShowDeleteAccountModal(true);
                                 }}
                                 finishOnboarding={finishOnboarding}
                                 stepChange={stepChange}
@@ -147,52 +125,7 @@ export default function Page() {
                             }} setTryDiffAccount={function (): void {
                                 throw new Error("Function not implemented.");
                             }} />
-                            // <InviteMembers
-                            //     finishOnboarding={finishOnboarding}
-                            //     stepChange={stepChange}
-                            //     user={user}
-                            //     workspace={workspacesList?.[0]}
-                            // />
                         )}
-                        {/* {step == 1 && <JoinWorkspaces
-                        setTryDiffAccount={() => {
-                            // setShowDeleteAccountModal(true);
-                        }}
-                        finishOnboarding={finishOnboarding}
-                        stepChange={stepChange}
-                    />} */}
-
-                        {/* <div className="fixed hidden h-full w-1/5 max-w-[320px] lg:block">
-                        <Controller
-                            control={control}
-                            name="name"
-                            render={({ field: { value } }) => (
-                                <OnboardingSidebar
-                                    watch={watch}
-                                    setValue={setValue}
-                                    control={control}
-                                    showProject={false}
-                                    workspaceName={value.length > 0 ? value : "New Workspace"}
-                                />
-                            )}
-                        />
-                    </div>
-                    <div className="ml-auto w-full lg:w-2/3 ">
-                        <div className="mx-auto my-16 w-full px-7 lg:w-4/5 lg:px-0">
-                            <div className="flex items-center justify-between">
-                                <p className="text-xl font-semibold text-onboarding-text-200 sm:text-2xl">De um nome para seu espaço de trabalho?</p>
-                                <OnboardingStepIndicator step={1} />
-                            </div>
-                            <WorkspaceForm
-                                user={data.user ?? undefined}
-                                control={control}
-                                handleSubmit={handleSubmit}
-                                setValue={setValue}
-                                errors={errors}
-                                isSubmitting={isSubmitting}
-                            />
-                        </div>
-                    </div> */}
                     </div>
                 </>) : (
                     <div className="grid fixed bg-white top-0 left-0 right-0 h-screen place-items-center">

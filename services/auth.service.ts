@@ -3,6 +3,9 @@ import { APIService } from "./api.service";
 import { IEmailCheckData, IEmailCheckResponse, IMagicSignInData, IPasswordSignInData } from "@/types/auth";
 
 export class AuthService extends APIService {
+    signOut() {
+      throw new Error("Method not implemented.");
+    }
     async emailCheck(data: IEmailCheckData): Promise<IEmailCheckResponse> {
         return this.post("/api/email-check/", data, { headers: {} })
             .then((response) => response?.data)

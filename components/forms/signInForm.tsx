@@ -1,16 +1,17 @@
 "use client"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { SignInSchema } from "@/lib/validations/user";
+import { AuthService } from "@/services/auth.service";
+import { IEmailCheckData } from "@/types/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { XCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { toast } from "sonner";
-import { XCircle } from "lucide-react";
 import { GoogleSignInButton } from "../ui/google-sign-in";
-import { IEmailCheckData } from "@/types/auth";
-import { AuthService } from "@/services/auth.service";
+
 
 
 type Props = {
@@ -21,7 +22,6 @@ type Props = {
 const authService = new AuthService();
 
 export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
-
     const form = useForm<z.infer<typeof SignInSchema>>({
         resolver: zodResolver(SignInSchema),
         defaultValues: {
@@ -40,7 +40,9 @@ export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
 
         await authService
             .emailCheck(payload)
-            .then((res) => onSubmit(res.isAccessPassword))
+            .then(async (res) => {
+                onSubmit(res.isAccessPassword)
+            })
             .catch((err) =>
                 toast.error("Ah, não! algo deu errado.", {
                     description: err?.error ?? "Houve um problema com a sua requisição.",

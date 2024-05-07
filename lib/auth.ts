@@ -1,8 +1,9 @@
+"use server"
 import { User } from "@prisma/client";
-import { SignJWT, base64url, jwtVerify } from "jose";
+import bcrypt from 'bcryptjs';
+import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from 'bcryptjs';
 
 const secretKey = "secret";
 const key = new TextEncoder().encode(secretKey);

@@ -1,12 +1,6 @@
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-
-// services
-
-// types
-
 import { WorkspaceService } from "@/services/workspace.service";
-import { User } from "@prisma/client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const workspaceService = new WorkspaceService();
 type Props = {
@@ -16,19 +10,15 @@ type Props = {
 };
 const useUserAuth = (props: Props) => {
   const { routeAuth, user, isLoading } = props;
-  // states
   const [isRouteAccess, setIsRouteAccess] = useState(true);
-  // router
   const router = useRouter();
-
-
   const searchParams = useSearchParams()
   const next_path = searchParams.get('next_path')
   const isValidURL = (url: string): boolean => {
     const disallowedSchemes = /^(https?|ftp):\/\//i;
     return !disallowedSchemes.test(url);
   };
- 
+
   useEffect(() => {
     const handleWorkSpaceRedirection = async () => {
       workspaceService.userWorkspaces().then(async (userWorkspaces) => {
@@ -49,7 +39,6 @@ const useUserAuth = (props: Props) => {
     };
 
     const handleUserRouteAuthentication = async () => {
-      console.log(user)
       if (user && user.isActive) {
         if (routeAuth === "sign-in") {
           if (user.isOnbordered) handleWorkSpaceRedirection();
@@ -73,14 +62,10 @@ const useUserAuth = (props: Props) => {
           }
         }
       } else {
-        // user is not active and we can redirect to no access page
-        // router.push("/no-access");
-        // remove token
         return;
       }
     };
-    
-    console.log(routeAuth)
+
     if (routeAuth === null) {
       setIsRouteAccess(() => false);
       return;
@@ -110,11 +95,8 @@ const useUserAuth = (props: Props) => {
     }
   }, [user, isLoading, routeAuth, router, next_path]);
 
-  console.log('hook')
   return {
     isLoading: isRouteAccess,
-    // assignedIssuesLength: user?.assigned_issues ?? 0,
-    // workspaceInvitesLength: user?.workspace_invites ?? 0,
   };
 };
 

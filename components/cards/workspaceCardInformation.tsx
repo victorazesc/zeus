@@ -1,6 +1,6 @@
-import { ChevronDown, Image } from "lucide-react"
 import { WorkspaceDetailSchema } from "@/lib/validations/workspace";
-import { Control, UseFormSetValue, UseFormWatch, Controller } from "react-hook-form";
+import { ChevronDown } from "lucide-react";
+import { Control, Controller, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { z } from "zod";
 import { Avatar } from "../ui/avatar";
 
@@ -9,7 +9,6 @@ type Props = {
     setValue?: UseFormSetValue<z.infer<typeof WorkspaceDetailSchema>>;
     watch?: UseFormWatch<z.infer<typeof WorkspaceDetailSchema>>;
     workspaceName: string | undefined | null;
-
 }
 
 export const WorkspaceCardInformation: React.FC<Props> = (props) => {

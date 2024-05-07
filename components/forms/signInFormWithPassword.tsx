@@ -1,17 +1,18 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SignInWithPasswordSchema } from "@/lib/validations/user";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, XCircle } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 import ESignInSteps from "@/constants/enums/signInSteps";
-import { useRouter } from "next/navigation";
+import { useUser } from "@/hooks/stores/use-user";
+import { SignInWithPasswordSchema } from "@/lib/validations/user";
 import { AuthService } from "@/services/auth.service";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 type Props = {
     email: string;
@@ -24,6 +25,7 @@ const authService = new AuthService();
 
 export const SignInFormWithPassword: React.FC<Props> = ({ email, handleStepChange, handleEmailClear, onSubmit }: Props) => {
     const [showPassword, setShowPassword] = useState(false);
+    const { fetchCurrentUser } = useUser();
     const [isSendingUniqueCode, setIsSendingUniqueCode] = useState(false);
     const router = useRouter()
     const form = useForm<z.infer<typeof SignInWithPasswordSchema>>({
@@ -37,7 +39,10 @@ export const SignInFormWithPassword: React.FC<Props> = ({ email, handleStepChang
 
     const handleFormSubmit = async (values: z.infer<typeof SignInWithPasswordSchema>) => {
         await authService.passwordSignIn(values)
-            .then(() => onSubmit())
+            .then(async () => {
+                await fetchCurrentUser()
+                onSubmit()
+            })
             .catch((error) =>
                 toast.error("Ah, não! algo deu errado.", {
                     description: error.message ?? "Houve um problema com a sua requisição.",

@@ -1,12 +1,10 @@
-import { BriefcaseBusiness, ChevronDown, LayoutDashboard, NotebookPen, ShoppingCart, UsersIcon, Wallet } from "lucide-react"
-
-import { useSession } from "next-auth/react";
-import { SessionContextValue } from "@/types/user";
-import { Control, Controller, UseFormSetValue, UseFormWatch } from "react-hook-form";
-import { Avatar } from "../ui/avatar/avatar";
 import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
+import { SessionContextValue } from "@/types/user";
+import { BriefcaseBusiness, ChevronDown, LayoutDashboard, NotebookPen, ShoppingCart, UsersIcon, Wallet } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Control, Controller, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { z } from "zod";
-import { Workspace } from "@prisma/client";
+import { Avatar } from "../ui/avatar/avatar";
 
 const workspaceLinks = [
     {

@@ -1,5 +1,6 @@
 import React from "react";
 // ui
+import { LoaderCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../tooltip";
 
 export type TAvatarSize = "sm" | "md" | "base" | "lg" | number;
@@ -148,7 +149,7 @@ export const Avatar: React.FC<Props> = (props) => {
                 ? {
                   height: `${size}px`,
                   width: `${size}px`,
-                  background: "red"
+                  background: "black"
                 }
                 : {}
             }
@@ -167,7 +168,7 @@ export const Avatar: React.FC<Props> = (props) => {
                   ...(isAValidNumber(sizeInfo.fontSize) && { fontSize: sizeInfo.fontSize })
                 }}
               >
-                {name ? name[0].toUpperCase() : fallbackText ?? "?"}
+                {name ? name[0].toUpperCase() : fallbackText ?? <LoaderCircle className="h-4 w-4 animate-spin" />}
               </div>
             )}
           </div>

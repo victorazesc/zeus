@@ -1,5 +1,6 @@
+import { TooltipProvider } from "@/components/ui/tooltip"
+import StoreWrapper from "@/lib/store-wrapper"
 import { NextAuthProvider } from "@/providers/nextAuthProvider"
-import { useSession } from "next-auth/react"
 import { ThemeProvider } from "next-themes"
 
 export default function RootLayout({
@@ -13,16 +14,20 @@ export default function RootLayout({
             <head />
             <body>
                 <div className="h-screen w-full overflow-hidden">
-                    <NextAuthProvider>
-                        <ThemeProvider
-                            attribute="class"
-                            defaultTheme="light"
-                            enableSystem
-                            disableTransitionOnChange
-                        >
-                            {children}
-                        </ThemeProvider>
-                    </NextAuthProvider >
+                    <TooltipProvider>
+                        <StoreWrapper>
+                            <NextAuthProvider>
+                                <ThemeProvider
+                                    attribute="class"
+                                    defaultTheme="light"
+                                    enableSystem
+                                    disableTransitionOnChange
+                                >
+                                    {children}
+                                </ThemeProvider>
+                            </NextAuthProvider >
+                        </StoreWrapper>
+                    </TooltipProvider>
                 </div>
             </body>
 

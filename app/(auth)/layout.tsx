@@ -1,9 +1,6 @@
-import { ThemeProvider } from "@/providers/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import Image from "next/image";
 import "../globals.css";
-import { NextAuthProvider } from "@/providers/nextAuthProvider";
-import { Toaster } from "@/components/ui/sonner";
-import { Suspense } from "react";
 
 export default async function RootLayout({ children }: any) {
     return (

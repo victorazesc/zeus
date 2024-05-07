@@ -1,12 +1,11 @@
+import { User } from "@prisma/client";
 import { kv } from "@vercel/kv";
-import prisma from "../lib/prisma";
-import { Prisma, User } from "@prisma/client";
+import { getToken } from "next-auth/jwt";
+import { GoogleProfile } from "next-auth/providers/google";
 import { NextRequest } from "next/server";
-import { JWT, getToken } from "next-auth/jwt";
 import { comparePasswords, hashPassword } from "../lib/auth";
 import { signJwtAccessToken } from "../lib/jwt";
-import { signIn } from "next-auth/react";
-import { GoogleProfile } from "next-auth/providers/google";
+import prisma from "../lib/prisma";
 
 interface IcreateUser {
     avatar?: string
@@ -41,7 +40,7 @@ export async function createUser({ email, isSocialAuth, avatar, name }: IcreateU
 
 }
 
-export async function updateCurrentUser({ req, data }: { req: NextRequest, data: User }) {
+export async function updateCurrentUser({ req, data }: { req: NextRequest, data: User | any }) {
     try {
         const currentUser = await getMe(req)
 
@@ -81,7 +80,6 @@ export async function validadeOtpAndSingUp() {
 export async function validadeOtpAndSingIn({ email, inputedOtp }: { email: string, inputedOtp?: string }) {
     const cachedOtp = await kv.get(`otp_${email}`);
     if (cachedOtp != inputedOtp) {
-        console.log('otp errado')
         return null
     }
     let user = await getuser({ email })
@@ -104,7 +102,6 @@ export async function validadeOtpAndSingIn({ email, inputedOtp }: { email: strin
 
 export async function validateGoogleSign({ profile }: { profile: GoogleProfile }) {
     let user = await getuser({ email: profile.email })
-    console.log(profile)
     if (!user) {
         const createUserPayload: IcreateUser = {
             avatar: profile.picture,
@@ -147,7 +144,6 @@ export async function signWithPassword({ email, sendedPassword }: { email?: stri
 export async function getMe(req: NextRequest) {
     try {
         const session = await getToken({ req }) as User
-        console.log(session)
         if (!session) throw new Error('Usuario não autenticado.')
 
         return session
