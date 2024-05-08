@@ -1,6 +1,7 @@
 import { Spinner } from "@/components/ui/circular-spinner";
 import { useUser } from "@/hooks/stores/use-user";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
+import useUserAuth from "@/hooks/use-user-auth";
 import { observer } from "mobx-react-lite";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -18,6 +19,7 @@ export const UserAuthWrapper: FC<IUserAuthWrapper> = observer((props) => {
     currentUser,
     currentUserError,
     fetchCurrentUser,
+    currentUserLoader
   } = useUser();
   const { fetchWorkspaces } = useWorkspace();
   // router
@@ -32,6 +34,8 @@ export const UserAuthWrapper: FC<IUserAuthWrapper> = observer((props) => {
   useSWR("USER_WORKSPACES_LIST", () => fetchWorkspaces(), {
     shouldRetryOnError: false,
   });
+
+  const {} = useUserAuth({ user: currentUser, isLoading: currentUserLoader });
 
   if (!currentUser && !currentUserError) {
     return (

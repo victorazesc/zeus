@@ -7,8 +7,10 @@ import { Spinner } from "@/components/ui/circular-spinner";
 import useUserAuth from "@/hooks/use-user-auth";
 import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
 import { WorkspaceService } from "@/services/workspace.service";
+import { NextPageWithLayout } from "@/types/types";
 import { SessionContextValue, TOnboardingSteps } from "@/types/user";
 import { User } from "@prisma/client";
+import { observer } from "mobx-react-lite";
 import { signOut, useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,7 +20,8 @@ import { z } from "zod";
 
 const workspaceService = new WorkspaceService()
 
-export default function Page() {
+const OnboardingPage: NextPageWithLayout = observer(() => {
+// export default function Page() {
     const { status, data } = useSession() as SessionContextValue
 
     const [step, setStep] = useState<number | null>(null);
@@ -55,8 +58,8 @@ export default function Page() {
         if (!data?.user) return;
     };
 
+    const { } = useUserAuth({ routeAuth: "onboarding", user: data?.user, isLoading: status === 'loading' });
     useEffect(() => {
-        const { } = useUserAuth({ routeAuth: "onboarding", user: data?.user, isLoading: status === 'loading' });
         const handleStepChange = async () => {
             if (!data?.user) return;
 
@@ -136,6 +139,8 @@ export default function Page() {
         </>
 
     )
-}
+})
+
+export default OnboardingPage
 
 // }

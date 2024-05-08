@@ -1,25 +1,19 @@
-import React, { useState } from "react";
+import { CreateUser } from "@/lib/validations/user";
+import { UserService } from "@/services/user.service";
+import { IWorkspace } from "@/types/workspace";
+import { Prisma, User } from "@prisma/client";
+import { Camera, User2Icon } from "lucide-react";
 import { observer } from "mobx-react-lite";
-import Image from "next/image";
+import { SessionContextValue, useSession } from "next-auth/react";
+import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Camera, User as User2, User2Icon } from "lucide-react";
-import { Prisma, User, Workspace } from "@prisma/client";
-import { OnboardingStepIndicator } from "./StepIndicator";
-import { OnboardingSidebar } from "./OnboardingSidebar";
+import { toast } from "sonner";
+import { z } from "zod";
+import { UserImageUploadModal } from "../modals/user-image-upload-modal";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { z } from "zod";
-import { IWorkspace } from "@/types/workspace";
-import { UserService } from "@/services/user.service";
-import { useSession, SessionContextValue } from "next-auth/react";
-import { UserImageUploadModal } from "../modals/user-image-upload-modal";
-
-
-const defaultValues: Partial<User> = {
-  name: "",
-  avatar: "",
-  // : undefined,
-};
+import { OnboardingSidebar } from "./OnboardingSidebar";
+import { OnboardingStepIndicator } from "./StepIndicator";
 
 type Props = {
   user?: User;
@@ -53,7 +47,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
     setValue,
     watch,
     formState: { errors, isSubmitting, isValid },
-  } = useForm<any>({
+  } = useForm<z.infer<typeof CreateUser>>({
     defaultValues: {
       name: user?.name ?? "",
       avatar: user?.avatar ?? "",
@@ -62,7 +56,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
     mode: "onChange",
   });
 
-  const onSubmit = async (formData: User) => {
+  const onSubmit = async (formData: z.infer<typeof CreateUser>) => {
     if (!user) return;
 
     const payload: Partial<User> = {
@@ -85,11 +79,9 @@ export const UserDetails: React.FC<Props> = observer((props) => {
         });
       })
       .catch(() => {
-        // captureEvent(USER_DETAILS, {
-        //   use_case: formData.use_case,
-        //   state: "FAILED",
-        //   element: "Onboarding",
-        // });
+        toast.error("Ah, não! algo deu errado.", {
+          description: "Houve um problema com a sua requisição.",
+        })
       });
   };
   const handleDelete = async (url: string | null | undefined) => {
@@ -105,17 +97,6 @@ export const UserDetails: React.FC<Props> = observer((props) => {
     setValue("avatar", "");
     setIsRemoving(false);
   };
-
-  // const handleDelete = (url: string | null | undefined) => {
-  //   if (!url) return;
-
-  //   setIsRemoving(true);
-  //   fileService.deleteUserFile(url).finally(() => {
-  //     setValue("avatar", "");
-  //     setIsRemoving(false);
-  //   });
-  // };
-
   return (
     <div className="flex h-full w-full space-y-7 overflow-y-auto sm:space-y-10 ">
       <div className="fixed hidden h-full w-1/5 max-w-[320px] lg:block">
@@ -183,13 +164,6 @@ export const UserDetails: React.FC<Props> = observer((props) => {
                   <Controller
                     control={control}
                     name="name"
-                    rules={{
-                      required: "Nome é obrigatório",
-                      maxLength: {
-                        value: 24,
-                        message: "Name must be within 24 characters.",
-                      },
-                    }}
                     render={({ field: { value, onChange, ref } }) => (
                       <Input
                         id="name"

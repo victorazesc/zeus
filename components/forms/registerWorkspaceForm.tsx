@@ -6,17 +6,18 @@ import { Control, Controller, FieldErrors, UseFormHandleSubmit, UseFormSetValue 
 
 // services
 
-import { toast } from "sonner";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { Prisma, User } from "@prisma/client";
-import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
-import { z } from "zod";
-import { WorkspaceService } from "@/services/workspace.service";
 import { RESTRICTED_URLS } from "@/constants/workspace";
-import { SessionContextValue, TOnboardingSteps } from "@/types/user";
+import { normalizeAccents } from "@/helpers/common.helper";
+import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
 import { UserService } from "@/services/user.service";
+import { WorkspaceService } from "@/services/workspace.service";
+import { SessionContextValue, TOnboardingSteps } from "@/types/user";
+import { Prisma, User } from "@prisma/client";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 // constants
 
 type Props = {
@@ -35,7 +36,6 @@ const userService = new UserService();
 
 export const WorkspaceForm: React.FC<Props> = (props) => {
     const { stepChange, user, control, handleSubmit, setValue, errors, isSubmitting } = props;
-    // states
     const [slugError, setSlugError] = useState(false);
     const [invalidSlug, setInvalidSlug] = useState(false);
     const { status, data, update } = useSession() as SessionContextValue
@@ -52,8 +52,8 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
 
                     await workspaceService.createWorkspace(formData)
                         .then(async (res) => {
-
                             const payload = {
+                                lastWorkspaceId: res.id,
                                 onboardingStep: {
                                     ...data?.user?.onboardingStep as Prisma.JsonObject,
                                     workspace_join: true,
@@ -135,9 +135,9 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                                 onChange={(event) => {
                                     onChange(event.target.value);
                                     setValue("name", event.target.value);
-                                    setValue("slug", event.target.value.toLocaleLowerCase().trim().replace(/ /g, "-"));
+                                    setValue("slug", normalizeAccents(event.target.value.toLocaleLowerCase().trim().replace(/ /g, "-")));
                                 }}
-                                placeholder="Enter workspace name..."
+                                placeholder="Digite o nome do espaço de trabalho..."
                                 ref={ref}
                                 className="h-[46px] w-full border-onboarding-border-100 text-base placeholder:text-base placeholder:text-custom-text-400/50"
                             />
@@ -158,7 +158,7 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                                 id="slug"
                                 name="slug"
                                 type="text"
-                                value={value.toLocaleLowerCase().trim().replace(/ /g, "-")}
+                                value={normalizeAccents(value.toLocaleLowerCase().trim().replace(/ /g, "-"))}
                                 onChange={(e) => {
                                     /^[a-zA-Z0-9_-]+$/.test(e.target.value) ? setInvalidSlug(false) : setInvalidSlug(true);
                                     onChange(e.target.value.toLowerCase());
