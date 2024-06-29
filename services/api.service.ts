@@ -2,9 +2,13 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 export abstract class APIService {
+  protected baseURL: string;
   protected headers: any = {};
 
-
+  constructor(baseURL: string) {
+    this.baseURL = baseURL;
+  }
+  
   setRefreshToken(token: string) {
     Cookies.set("refreshToken", token, { expires: 30 });
   }
@@ -31,6 +35,7 @@ export abstract class APIService {
 
   getHeaders() {
     return {
+      ...this.headers,
       Authorization: `Bearer ${this.getAccessToken()}`,
     };
   }

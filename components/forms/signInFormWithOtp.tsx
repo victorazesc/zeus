@@ -42,15 +42,11 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
     const { handleSubmit, formState: { errors, isSubmitting, isValid }, reset, getValues } = form
 
 
-
     const handleUniqueCodeSignIn = async (values: z.infer<typeof SignInWithOtpSchema>) => {
         await authService.magicSignIn({ email: values.email, token: values.otp })
             .then(async () => {
                 const currentUser = await userService.currentUser();
                 await onSubmit(currentUser.isAccessPassword);
-                if (currentUser.isAccessPassword) {
-                    route.push('/onboarding')
-                }
             })
             .catch((error) =>
                 toast.error("Ah, não! algo deu errado.", {
@@ -60,7 +56,6 @@ const SignInFormWithOtp: React.FC<Props> = ({ email, onSubmit, handleEmailClear,
     }
 
     const handleSendNewCode = async (values: z.infer<typeof SignInWithOtpSchema>) => {
-
         await authService.generateUniqueCode({ email: values.email })
             .then(() => {
                 setResendCodeTimer(30);

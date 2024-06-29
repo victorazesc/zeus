@@ -12,7 +12,6 @@ import { WorkspaceDashboardHeader } from "@/components/headers/workspace-dashboa
 import { useWorkspace } from "@/hooks/stores/use-workspace";
 import { NextPageWithLayout } from "@/types/types";
 import { observer } from "mobx-react";
-import AppLayout from "../layout";
 
 const WorkspacePage: NextPageWithLayout = observer(() => {
     const { currentWorkspace } = useWorkspace();
@@ -29,7 +28,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
 });
 
 WorkspacePage.getLayout = function getLayout(page: ReactElement) {
-    return <AppLayout>{page}</AppLayout>;
+    return {page};
 };
 
 export default WorkspacePage;

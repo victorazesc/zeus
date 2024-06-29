@@ -10,9 +10,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { GoogleSignInButton } from "../ui/google-sign-in";
-
-
+import Link from "next/link";
+import { OAuthOptions } from "../account/o-auth";
+import useSignInRedirection from "@/hooks/use-sign-in-redirection";
+import { useApplication } from "@/hooks/stores/use-application";
 
 type Props = {
     onSubmit: (isAccessPassword: boolean) => void;
@@ -31,6 +32,10 @@ export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
         reValidateMode: "onChange",
     });
     const { handleSubmit, formState: { errors, isSubmitting, isValid } } = form
+    const { handleRedirection } = useSignInRedirection();
+    const {
+        config: { envConfig },
+    } = useApplication();
 
     const handleFormSubmit = async (values: z.infer<typeof SignInSchema>) => {
         const payload: IEmailCheckData = {
@@ -94,14 +99,7 @@ export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
                     </form>
                 </Form>
             </div>
-            <div className="mx-auto sm:w-96">
-                <div className="relative flex py-5 mt-4 mb-4 items-center">
-                    <div className="flex-grow border-t border-custom-auth-border-100"></div>
-                    <span className="flex-shrink mx-4 text-custom-auth-text-100">Ou continue com</span>
-                    <div className="flex-grow border-t border-custom-auth-border-100"></div>
-                </div>
-                <GoogleSignInButton />
-            </div>
+            <OAuthOptions handleSignInRedirection={handleRedirection} type="sign_in" />
         </>
     )
 }

@@ -1,4 +1,4 @@
-import { setPassword } from "@/actions/user.action"
+import { setPassword } from "@/actions"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function PATCH(_request: NextRequest, _response: NextResponse) {

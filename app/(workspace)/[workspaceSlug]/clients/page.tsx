@@ -6,7 +6,6 @@ import { ReactElement } from "react";
 
 import { ClientsHeader } from "@/components/headers/workspace-clients";
 import { NextPageWithLayout } from "@/types/types";
-import AppLayout from "../../layout";
 
 const WorkspacePage: NextPageWithLayout = observer(() => {
     const { currentWorkspace } = useWorkspace();
@@ -23,7 +22,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
 });
 
 WorkspacePage.getLayout = function getLayout(page: ReactElement) {
-    return <AppLayout>{page}</AppLayout>;
+    return {page};
 };
 
 export default WorkspacePage;

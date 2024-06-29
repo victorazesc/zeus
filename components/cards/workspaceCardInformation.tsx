@@ -24,7 +24,7 @@ export const WorkspaceCardInformation: React.FC<Props> = (props) => {
 
                         <div className="mx-2 flex w-full flex-col flex-shrink break-words gap-1">
                             <div className="flex gap-4 items-center">
-                                <Controller
+                                {/* <Controller
                                     control={control}
                                     name="tradeName"
                                     render={({ field: { value } }) => {
@@ -42,9 +42,9 @@ export const WorkspaceCardInformation: React.FC<Props> = (props) => {
                                             </div>
                                         )
                                     }}
-                                />
+                                /> */}
                                 <div>
-                                    <Controller
+                                    {/* <Controller
                                         control={control}
                                         name="tradeName"
                                         render={({ field: { value } }) => {
@@ -53,8 +53,8 @@ export const WorkspaceCardInformation: React.FC<Props> = (props) => {
                                             )
 
                                         }}
-                                    />
-                                    <span className="flex gap-2">
+                                    /> */}
+                                    {/* <span className="flex gap-2">
                                         <Controller
                                             control={control}
                                             name="cnpj"
@@ -73,7 +73,7 @@ export const WorkspaceCardInformation: React.FC<Props> = (props) => {
                                                 )
                                             }}
                                         />
-                                    </span>
+                                    </span> */}
                                 </div>
                             </div>
                             <span className="flex text-sm font-medium text-custom-text-400 mt-4">

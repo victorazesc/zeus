@@ -1,10 +1,9 @@
+"use client"
 import { CreateUser } from "@/lib/validations/user";
-import { UserService } from "@/services/user.service";
 import { IWorkspace } from "@/types/workspace";
 import { Prisma, User } from "@prisma/client";
 import { Camera, User2Icon } from "lucide-react";
 import { observer } from "mobx-react-lite";
-import { SessionContextValue, useSession } from "next-auth/react";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,8 +11,10 @@ import { z } from "zod";
 import { UserImageUploadModal } from "../modals/user-image-upload-modal";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { OnboardingSidebar } from "./OnboardingSidebar";
-import { OnboardingStepIndicator } from "./StepIndicator";
+import { OnboardingSidebar } from "./onboarding-sidebar";
+import { OnboardingStepIndicator } from "./step-indicator";
+import { useUser } from "@/hooks/stores/use-user";
+import { useWorkspace } from "@/hooks/stores/use-workspace";
 
 type Props = {
   user?: User;
@@ -29,16 +30,16 @@ const USE_CASES = [
   "Gestão de negócio"
 ];
 
-const userService = new UserService();
-// const fileService = new FileService();
-
 export const UserDetails: React.FC<Props> = observer((props) => {
-  const { user, setUserName, workspacesList } = props;
-  const { status, data, update } = useSession() as SessionContextValue
-  // states
+  const { user, setUserName } = props;
+
   const [isRemoving, setIsRemoving] = useState(false);
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
-  const workspaceName = workspacesList ? workspacesList[0]?.name : "New Workspace";
+
+  const { updateCurrentUser } = useUser()
+  const { workspaces } = useWorkspace()
+
+  const workspaceName = workspaces ? Object.values(workspaces)?.[0]?.name : "New Workspace";
 
   const {
     handleSubmit,
@@ -68,16 +69,8 @@ export const UserDetails: React.FC<Props> = observer((props) => {
       },
     };
 
-    await userService.updateMe(payload)
-      .then(async () => {
-        await update({
-          ...data,
-          user: {
-            ...data?.user,
-            ...payload
-          },
-        });
-      })
+    await updateCurrentUser(payload)
+      .then(() => { })
       .catch(() => {
         toast.error("Ah, não! algo deu errado.", {
           description: "Houve um problema com a sua requisição.",
@@ -87,13 +80,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
   const handleDelete = async (url: string | null | undefined) => {
     if (!url) return;
     setIsRemoving(true);
-    await update({
-      ...user,
-      user: {
-        ...user,
-        avatar: ""
-      },
-    });
+    updateCurrentUser({ avatar: "" })
     setValue("avatar", "");
     setIsRemoving(false);
   };
@@ -117,8 +104,6 @@ export const UserDetails: React.FC<Props> = observer((props) => {
         name="avatar"
         render={({ field: { onChange, value } }) => (
           <UserImageUploadModal
-            currentUserUpdate={update}
-            currentUser={user}
             isOpen={isImageUploadModalOpen}
             onClose={() => setIsImageUploadModalOpen(false)}
             isRemoving={isRemoving}
@@ -131,12 +116,12 @@ export const UserDetails: React.FC<Props> = observer((props) => {
           />
         )}
       />
-      <div className="ml-auto flex w-full flex-col justify-between lg:w-2/3 ">
+      <div className="ml-auto flex w-full flex-col justify-between lg:w-4/5 ">
         <div className="mx-auto flex flex-col px-7 pt-3 md:px-0 lg:w-4/5">
           <form onSubmit={handleSubmit(onSubmit)} className="ml-auto  md:w-11/12">
             <div className="flex items-center justify-between">
               <p className="text-xl font-semibold sm:text-2xl">Como podemos chamar você? </p>
-              <OnboardingStepIndicator step={2} />
+              <OnboardingStepIndicator step={1} />
             </div>
             <div className="mt-6 flex w-full ">
               <button type="button" onClick={() => setIsImageUploadModalOpen(true)}>
@@ -159,7 +144,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
                 )}
               </button>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 w-full">
                 <div className="my-2 mr-10 flex w-full rounded-md bg-onboarding-background-200 text-sm">
                   <Controller
                     control={control}

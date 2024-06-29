@@ -1,10 +1,9 @@
-import { sendOtpEmail } from "@/actions/notify.action"
-import { validadeOtpAndSingIn, verifyUser } from "@/actions/user.action"
+import { validateOtpAndSignIn } from "@/actions"
 import { NextResponse } from "next/server"
 
 export async function POST(_request: Request) {
     const body = await _request.json()
-    const { magicToken, email } = body
-    const result = await validadeOtpAndSingIn({ email, inputedOtp: magicToken })
+    const { token, email } = body
+    const result = await validateOtpAndSignIn({ email, imputedOTP: token })
     return NextResponse.json(result)
 }

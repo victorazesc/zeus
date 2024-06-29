@@ -1,5 +1,4 @@
-import { sendOtpEmail } from "@/actions/notify.action"
-import { getMe, getuser, updateCurrentUser, validadeOtpAndSingIn, verifyUser } from "@/actions/user.action"
+import { getMe, updateCurrentUser } from "@/actions"
 import { NextRequest, NextResponse } from "next/server"
 export const dynamic = 'force-dynamic'
 

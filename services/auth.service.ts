@@ -1,11 +1,25 @@
-import { SignInResponse, signIn } from "next-auth/react";
+import { API_BASE_URL } from "@/helpers/common.helper";
 import { APIService } from "./api.service";
-import { IEmailCheckData, IEmailCheckResponse, IMagicSignInData, IPasswordSignInData } from "@/types/auth";
+import { IEmailCheckData, IEmailCheckResponse, ILoginTokenResponse, IMagicSignInData, IPasswordSignInData } from "@/types/auth";
 
 export class AuthService extends APIService {
-    signOut() {
-      throw new Error("Method not implemented.");
+    constructor() {
+        super(API_BASE_URL);
     }
+
+
+    async socialAuth(data: any): Promise<ILoginTokenResponse> {
+        return this.post("/api/auth/social", data, { headers: {} })
+            .then((response) => {
+                this.setAccessToken(response?.data?.accessToken);
+                this.setRefreshToken(response?.data?.refreshToken);
+                return response?.data;
+            })
+            .catch((error) => {
+                throw error?.response?.data;
+            });
+    }
+
     async emailCheck(data: IEmailCheckData): Promise<IEmailCheckResponse> {
         return this.post("/api/email-check/", data, { headers: {} })
             .then((response) => response?.data)
@@ -14,13 +28,16 @@ export class AuthService extends APIService {
             });
     }
 
-    async passwordSignIn(data: IPasswordSignInData): Promise<SignInResponse | undefined> {
-        return signIn('auth-tidi', { email: data.email, password: data.password, redirect: false })
+
+    async passwordSignIn(data: IPasswordSignInData): Promise<ILoginTokenResponse> {
+        return this.post("/api/auth/sign-in/", data, { headers: {} })
             .then((response) => {
-                return response;
+                this.setAccessToken(response?.data?.accessToken);
+                this.setRefreshToken(response?.data?.refreshToken);
+                return response?.data;
             })
             .catch((error) => {
-                throw error
+                throw error?.response?.data;
             });
     }
 
@@ -32,17 +49,21 @@ export class AuthService extends APIService {
             });
     }
 
+
     async magicSignIn(data: IMagicSignInData): Promise<any> {
-        return signIn('auth-magic', { magicToken: data.token, email: data.email, redirect: false })
+        return await this.post("/api/auth/magic-sign-in/", data, { headers: {} })
             .then((response) => {
                 if (response?.status === 200) {
-                    return response;
+                    this.setAccessToken(response?.data?.accessToken);
+                    this.setRefreshToken(response?.data?.refreshToken);
+                    return response?.data;
                 }
             })
             .catch((error) => {
                 throw error?.response?.data;
             });
     }
+
 
     async setPassword(data: { password: string }): Promise<any> {
         return this.patch(`/api/users/me/set-password/`, data)
@@ -68,4 +89,18 @@ export class AuthService extends APIService {
         }
         return data
     };
+
+    async signOut(): Promise<any> {
+        return this.post("/api/auth/sign-out/", { refreshToken: this.getRefreshToken() })
+            .then((response) => {
+                this.purgeAccessToken();
+                this.purgeRefreshToken();
+                return response?.data;
+            })
+            .catch((error) => {
+                this.purgeAccessToken();
+                this.purgeRefreshToken();
+                throw error?.response?.data;
+            });
+    }
 }

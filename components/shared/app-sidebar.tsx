@@ -1,8 +1,8 @@
 "use client"
 import { observer } from "mobx-react-lite";
 import { FC, useRef } from "react";
-import { WorkspaceSidebarDropdown } from "./SidebarDropdown";
-import { WorkspaceSidebarMenu } from "./SidebarMenu";
+import { WorkspaceSidebarDropdown } from "./sidebar-dropdown";
+import { WorkspaceSidebarMenu } from "./sidebar-menu";
 
 export interface IAppSidebar { }
 

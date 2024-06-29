@@ -1,18 +1,17 @@
-// services
-import { User } from "@prisma/client";
+import { API_BASE_URL } from "@/helpers/common.helper";
 import { APIService } from "./api.service";
-import { useUploadThing } from "@/lib/uploadthing";
-
-const { startUpload } = useUploadThing("media");
 
 export class FileService extends APIService {
-
-
-    async uploadUserFile(file: FormData): Promise<any> {
-        return startUpload(file)
+    constructor() {
+        super(API_BASE_URL);
+      }
+    
+    async uploadUserFile(files: FormData): Promise<any> {
+        return await this.post("api/users/file-assets", files)
             .then((response) => response?.data)
             .catch((error) => {
                 throw error?.response?.data;
             });
     }
 }
+

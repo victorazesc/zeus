@@ -23,6 +23,7 @@ export interface IWorkspace {
   total_issues: number;
 }
 
+
 export interface IWorkspaceLite {
   readonly id: string;
   name: string;
@@ -66,7 +67,7 @@ export type Properties = {
 };
 
 export interface IWorkspaceMember {
-  id: string;
+  id: number;
   member: IUserLite;
   role: EUserWorkspaceRoles;
 }

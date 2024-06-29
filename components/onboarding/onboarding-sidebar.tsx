@@ -1,10 +1,9 @@
 import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
-import { SessionContextValue } from "@/types/user";
 import { BriefcaseBusiness, ChevronDown, LayoutDashboard, NotebookPen, ShoppingCart, UsersIcon, Wallet } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { Control, Controller, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { z } from "zod";
 import { Avatar } from "../ui/avatar/avatar";
+import { useUser } from "@/hooks/stores/use-user";
 
 const workspaceLinks = [
     {
@@ -44,7 +43,8 @@ type Props = {
 
 export const OnboardingSidebar: React.FC<Props> = (props) => {
     const { workspaceName, showProject, control, setValue, watch, userFullName } = props;
-    const { status, data, update } = useSession() as SessionContextValue
+    const { currentUser } = useUser()
+
     return (
         <div className="fixed hidden h-full w-1/5 max-w-[320px] lg:block">
             <div className="relative h-full border-r border-custom-border-100 ">
@@ -52,7 +52,7 @@ export const OnboardingSidebar: React.FC<Props> = (props) => {
                     <div>
                         <Controller
                             control={control}
-                            name="name"
+                            name="tradeName"
                             render={({ field: { value } }) => {
                                 return <div className="flex w-full items-center gap-y-2 truncate border border-transparent px-4 pt-6 transition-all">
                                     <div className="flex flex-shrink-0">
@@ -72,8 +72,8 @@ export const OnboardingSidebar: React.FC<Props> = (props) => {
                                     </div>
                                     <div className="flex flex-shrink-0">
                                         <Avatar
-                                            name={data?.user.email}
-                                            src={data?.user.avatar ?? ""}
+                                            name={currentUser?.email}
+                                            src={currentUser?.avatar ?? ""}
                                             size={24}
                                             shape="square"
                                             fallbackBackgroundColor="#FCBE1D"
@@ -102,8 +102,8 @@ export const OnboardingSidebar: React.FC<Props> = (props) => {
                         </div>
                         <div className="flex flex-shrink-0">
                             <Avatar
-                                name={userFullName ?? data?.user?.email}
-                                src={data?.user.avatar ?? ""}
+                                name={userFullName ?? currentUser?.email}
+                                src={currentUser?.avatar ?? ""}
                                 size={24}
                                 shape="square"
                                 fallbackBackgroundColor="#FCBE1D"

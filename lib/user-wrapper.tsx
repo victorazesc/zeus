@@ -1,3 +1,4 @@
+"use client"
 import { Spinner } from "@/components/ui/circular-spinner";
 import { useUser } from "@/hooks/stores/use-user";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
@@ -5,7 +6,7 @@ import useUserAuth from "@/hooks/use-user-auth";
 import { observer } from "mobx-react-lite";
 import { usePathname, useRouter } from "next/navigation";
 
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useEffect } from "react";
 import useSWR from "swr";
 
 export interface IUserAuthWrapper {
@@ -25,6 +26,7 @@ export const UserAuthWrapper: FC<IUserAuthWrapper> = observer((props) => {
   // router
   const path = usePathname()
   const router = useRouter();
+
   // fetching user information
   useSWR("CURRENT_USER_DETAILS", () => fetchCurrentUser(), {
     shouldRetryOnError: false,
@@ -34,8 +36,6 @@ export const UserAuthWrapper: FC<IUserAuthWrapper> = observer((props) => {
   useSWR("USER_WORKSPACES_LIST", () => fetchWorkspaces(), {
     shouldRetryOnError: false,
   });
-
-  const {} = useUserAuth({ user: currentUser, isLoading: currentUserLoader });
 
   if (!currentUser && !currentUserError) {
     return (
@@ -52,6 +52,5 @@ export const UserAuthWrapper: FC<IUserAuthWrapper> = observer((props) => {
     router.push(`/?next_path=${redirectTo}`);
     return null;
   }
-
   return <>{children}</>;
 });

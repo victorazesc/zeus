@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useDropzone } from "react-dropzone";
@@ -5,15 +6,12 @@ import { Transition, Dialog } from "@headlessui/react";
 // hooks
 import { UserCircle2 } from "lucide-react";
 
-
-
-import { FileService } from "@/services/file.service";
 import { Button } from "../ui/button";
-import { toast } from "sonner";
+
 import { MAX_FILE_SIZE } from "@/constants/common";
-import { useUploadThing } from "@/lib/uploadthing";
-import { isBase64Image } from "@/lib/utils";
-import { User } from "@prisma/client";
+import { FileService } from "@/services/file.service";
+import { uploadFiles, useUploadThing } from "@/lib/uploadthing";
+import { toast } from "sonner";
 // services
 
 // ui
@@ -27,23 +25,19 @@ type Props = {
   onClose: () => void;
   onSuccess: (url: string) => void;
   value: string | null;
-  currentUserUpdate: any;
-  currentUser: User | undefined
 };
 
 // services
-// const fileService = new FileService();
+const fileService = new FileService();
 
 export const UserImageUploadModal: React.FC<Props> = observer((props) => {
-  const { value, onSuccess, isOpen, onClose, isRemoving, handleDelete, currentUser, currentUserUpdate } = props;
+  const { value, onSuccess, isOpen, onClose, isRemoving, handleDelete } = props;
   // states
-  const [image, setImage] = useState<File[] | null>(null);
-  const [isImageUploading, setIsImageUploading] = useState(false);
-  // store hooks
+  const [image, setImage] = useState<File | null>(null);
+  const [isImageUploading, setIsImageUploading] = useState(false)
 
-  const { startUpload } = useUploadThing("imageUploader")
-  const onDrop = (acceptedFiles: File[]) => setImage(acceptedFiles);
-
+  const onDrop = (acceptedFiles: File[]) => setImage(acceptedFiles[0]);
+  // const { startUpload } = useUploadThing("imageUploader")
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
     accept: {
@@ -60,50 +54,33 @@ export const UserImageUploadModal: React.FC<Props> = observer((props) => {
   };
 
   const handleSubmit = async () => {
+    if (!image) return;
 
-    if (!image) return
     setIsImageUploading(true);
 
-    const imgRes = await startUpload(image);
-    if (imgRes) {
-      onSuccess(imgRes[0].url)
-      await currentUserUpdate({
-        ...currentUser,
-        user: {
-          ...currentUser,
-          avatar: imgRes[0].url
-        },
-      });
-      setImage(null);
-    }
+    const formData = new FormData();
+    formData.append("asset", image);
+    formData.append("attributes", JSON.stringify({}));
 
+    fileService
+      .uploadUserFile(formData)
+      .then((res) => {
+        const imageUrl = res.asset;
 
-    // if (!image) return;
+        onSuccess(imageUrl);
+        setImage(null);
 
-
-
-    // const formData = new FormData();
-    // formData.append("asset", image);
-    // formData.append("attributes", JSON.stringify({}));
-    // console.log(image)
-    // const imgRes = await startUpload(image);
-    // console.log(imgRes)
-    // fileService
-    //   .uploadUserFile(formData)
-    //   .then((res: any) => {
-    //     const imageUrl = res.asset;
-
-    //     onSuccess(imageUrl);
-    //     setImage(null);
-
-    //     // if (value) fileService.deleteUserFile(value);
-    //   })
-    //   .catch((err: any) =>
-    //     toast.error("Ah, não! algo deu errado.", {
-    //       description: err?.error ?? "Houve um problema com a sua requisição.",
-    //     })
-    //   )
-    //   .finally(() => setIsImageUploading(false));
+        // if (value) fileService.deleteUserFile(value);
+      })
+      .catch((err) =>
+        console.error(err)
+        // toast.error({
+        //   type: TOAST_TYPE.ERROR,
+        //   title: "Error!",
+        //   message: err?.error ?? "Something went wrong. Please try again.",
+        // })
+      )
+      .finally(() => setIsImageUploading(false));
   };
 
 
@@ -156,7 +133,7 @@ export const UserImageUploadModal: React.FC<Props> = observer((props) => {
                               Edit
                             </button>
                             <img
-                              src={image ? URL.createObjectURL(image[0]) : value ? value : ""}
+                              src={image ? URL.createObjectURL(image) : value ? value : ""}
                               alt="image"
                               className="absolute left-0 top-0 h-full w-full rounded-md object-cover"
                             />

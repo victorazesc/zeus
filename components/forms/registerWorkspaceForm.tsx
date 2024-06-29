@@ -1,24 +1,19 @@
+"use client"
 import { useState } from "react";
 import { Control, Controller, FieldErrors, UseFormHandleSubmit, UseFormSetValue } from "react-hook-form";
-// ui
-
-// types
-
-// services
-
 import { RESTRICTED_URLS } from "@/constants/workspace";
 import { normalizeAccents } from "@/helpers/common.helper";
 import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
-import { UserService } from "@/services/user.service";
 import { WorkspaceService } from "@/services/workspace.service";
-import { SessionContextValue, TOnboardingSteps } from "@/types/user";
-import { Prisma, User } from "@prisma/client";
-import { useSession } from "next-auth/react";
+import { TOnboardingSteps } from "@/types/user";
+import { User } from "@prisma/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-// constants
+import { useUser } from "@/hooks/stores/use-user";
+import { useWorkspace } from "@/hooks/stores/use-workspace";
+import { IWorkspace } from "@/types/workspace";
 
 type Props = {
     stepChange: (steps: Partial<any>) => Promise<void>;
@@ -32,13 +27,14 @@ type Props = {
 
 // services
 const workspaceService = new WorkspaceService();
-const userService = new UserService();
 
 export const WorkspaceForm: React.FC<Props> = (props) => {
     const { stepChange, user, control, handleSubmit, setValue, errors, isSubmitting } = props;
     const [slugError, setSlugError] = useState(false);
     const [invalidSlug, setInvalidSlug] = useState(false);
-    const { status, data, update } = useSession() as SessionContextValue
+
+    const { updateCurrentUser } = useUser();
+    const { createWorkspace, fetchWorkspaces, workspaces } = useWorkspace();
 
 
     const handleCreateWorkspace = async (formData: z.infer<typeof WorkspaceCreateSchema>) => {
@@ -50,61 +46,34 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                 if (res.status === true && !RESTRICTED_URLS.includes(formData.slug)) {
                     setSlugError(false);
 
-                    await workspaceService.createWorkspace(formData)
-                        .then(async (res) => {
-                            const payload = {
-                                lastWorkspaceId: res.id,
-                                onboardingStep: {
-                                    ...data?.user?.onboardingStep as Prisma.JsonObject,
-                                    workspace_join: true,
-                                    workspace_create: true,
-                                },
-                            };
+                    await createWorkspace(formData)
+                        .then(async (res: IWorkspace) => {
 
-
-                            await userService.updateMe(payload)
-                                .then(async () => {
-                                    await update({
-                                        ...data,
-                                        user: {
-                                            ...data?.user,
-                                            ...payload
-                                        },
-                                    });
-                                })
-                                .catch(() => {
-                                    toast.error("Error!", {
-                                        description: "Erro ao atualizar dados do usuario",
-                                    });
-                                });
-
-
-
-                            toast.success("Success!", {
-                                description: "Workspace created successfully.",
+                            toast.success("Sucesso!", {
+                                description: "Espaço de Trabalho criado com sucesso.",
                             });
 
-                            // await fetchWorkspaces();
+                            await fetchWorkspaces();
                             await completeStep();
                         })
                         .catch(() => {
-                            toast.error("Error!", {
-                                description: "Workspace could not be created. Please try again.",
+                            toast.error("Ops!", {
+                                description: "Espaço de Trabalho não pode ser criado. Por Favor tente novamente.",
                             });
                         });
                 } else setSlugError(true);
             })
             .catch(() =>
-                toast.error("Error!", {
-                    description: "Some error occurred while creating workspace. Please try again.",
+                toast.error("Ops!", {
+                    description: "Aconteceu algum erro enquanto seu espaço de trabalho estava sendo criado. Por Favor tente novamente.",
                 })
             );
     };
 
     const completeStep = async () => {
-        if (!user) return;
+        if (!user || !workspaces) return;
 
-        // const firstWorkspace = Object.values(workspaces ?? {})?.[0];
+        const firstWorkspace = Object.values(workspaces ?? {})?.[0];
 
         const payload: Partial<TOnboardingSteps> = {
             workspace_create: true,
@@ -112,29 +81,29 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
         };
 
         await stepChange(payload);
-        // await updateCurrentUser({
-        //     last_workspace_id: firstWorkspace?.id,
-        // });
+        await updateCurrentUser({
+            lastWorkspaceId: firstWorkspace?.id,
+        });
     };
 
 
     return (
-        <form className="mt-5 md:w-2/3" onSubmit={handleSubmit(handleCreateWorkspace)}>
+        <form className="mt-5 w-full" onSubmit={handleSubmit(handleCreateWorkspace)}>
             <div className="mb-5">
                 <p className="mb-1 text-base text-custom-text-400">Diga..</p>
                 <Controller
                     control={control}
-                    name="name"
+                    name="tradeName"
                     render={({ field: { value, ref, onChange } }) => (
                         <div className="relative flex items-center rounded-md bg-onboarding-background-200">
                             <Input
-                                id="name"
-                                name="name"
+                                id="tradeName"
+                                name="tradeName"
                                 type="text"
                                 value={value}
                                 onChange={(event) => {
                                     onChange(event.target.value);
-                                    setValue("name", event.target.value);
+                                    setValue("tradeName", event.target.value);
                                     setValue("slug", normalizeAccents(event.target.value.toLocaleLowerCase().trim().replace(/ /g, "-")));
                                 }}
                                 placeholder="Digite o nome do espaço de trabalho..."
@@ -144,6 +113,76 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                         </div>
                     )}
                 />
+
+                <div className="grid grid-cols-4 gap-4 my-4">
+                    <div className="col-span-2">
+                        <Controller
+                            control={control}
+                            name="name"
+                            render={({ field: { value, onChange, ref } }) => (
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    type="text"
+                                    value={value}
+                                    autoFocus
+                                    onChange={(event) => {
+                                        onChange(event);
+                                    }}
+                                    ref={ref}
+                                    placeholder="Qual é a razão social ?"
+                                    className="w-full border-onboarding-border-100 focus:border-custom-primary-100"
+                                />
+                            )}
+                        />
+                    </div>
+                    <div>
+                        <Controller
+                            control={control}
+                            name="document"
+                            render={({ field: { value, ref, onChange } }) => (
+                                <div className="relative flex items-center rounded-md bg-onboarding-background-200">
+                                    <Input
+                                        id="document"
+                                        name="document"
+                                        type="text"
+                                        value={value}
+                                        onChange={(event) => {
+                                            onChange(event.target.value);
+                                            setValue("document", event.target.value.toLocaleLowerCase().trim().replace(/ /g, "-"));
+                                        }}
+                                        placeholder="CNPJ/CPF"
+                                        ref={ref}
+                                        className="h-[46px] w-full border-onboarding-border-100 placeholder:text-custom-text-400/50"
+                                    />
+                                </div>
+                            )}
+                        />
+                    </div>
+                    <div>
+                        <Controller
+                            control={control}
+                            name="ie"
+                            render={({ field: { value, ref, onChange } }) => (
+                                <div className="relative flex items-center rounded-md bg-onboarding-background-200">
+                                    <Input
+                                        id="ie"
+                                        name="ie"
+                                        type="text"
+                                        value={value}
+                                        onChange={(event) => {
+                                            onChange(event.target.value);
+                                            setValue("ie", event.target.value);
+                                        }}
+                                        placeholder="Inscrição estadual"
+                                        ref={ref}
+                                        className="h-[46px] w-full border-onboarding-border-100 placeholder:text-custom-text-400/50"
+                                    />
+                                </div>
+                            )}
+                        />
+                    </div>
+                </div>
                 <p className="mb-1 mt-4 text-base text-custom-text-400">Você pode editar o slug.</p>
                 <Controller
                     control={control}
@@ -174,9 +213,7 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                     <span className="text-sm text-red-500">{`O URL só pode conter ( - ), ( _ ) e caracteres alfanuméricos.`}</span>
                 )}
             </div>
-            <Button className="text-white" type="submit">
-                {isSubmitting ? "Creating..." : "Próximo"}
-            </Button>
+            <Button className="text-white" type="submit" loading={isSubmitting}>Próximo</Button>
         </form>
     );
 };

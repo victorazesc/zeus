@@ -1,8 +1,6 @@
 "use client"
 import { RootStore } from "@/store/root.store";
 import { createContext } from "react";
-// mobx store
-
 
 let rootStore = new RootStore();
 
@@ -15,7 +13,7 @@ const initializeStore = () => {
   return _rootStore;
 };
 
-export const StoreProvider = ({ children }: any) => {
+export const StoreProvider = ({children}: any) => {
   const store = initializeStore();
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 };

@@ -51,7 +51,6 @@ export class RouterStore implements IRouterStore {
    */
   setQuery = (query: ParsedUrlQuery) => {
     runInAction(() => {
-      console.log('rodou')
       this.query = query;
     });
   };

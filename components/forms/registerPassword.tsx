@@ -5,41 +5,64 @@ import { SignInWithPasswordSchema } from "@/lib/validations/user";
 import { AuthService } from "@/services/auth.service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
+import { useUser } from "@/hooks/stores/use-user";
+import { toast } from "sonner";
+
+type Props = {
+    email: string;
+    handleSignInRedirection: () => Promise<void>;
+};
 
 const authService = new AuthService()
 
-const RegisterPassword = () => {
-    const route = useRouter()
-    const { update, data: session } = useSession() as any
+export const SignInOptionalSetPasswordForm: React.FC<Props> = (props) => {
+    const { email, handleSignInRedirection } = props;
+
+    const [isGoingToWorkspace, setIsGoingToWorkspace] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
     const form = useForm<z.infer<typeof SignInWithPasswordSchema>>({
         resolver: zodResolver(SignInWithPasswordSchema),
         defaultValues: {
-            email: session?.user?.email,
+            email,
             password: ""
         },
     });
 
     const { handleSubmit, formState: { isSubmitting, isValid } } = form
 
-    const onSubmit = async (values: z.infer<typeof SignInWithPasswordSchema>) => {
-        await authService.setPassword({ password: values.password }).then(async () => {
-            await update({
-                ...session,
-                user: {
-                    ...session?.user,
-                    isAccessPassword: true,
-                },
+
+    const handleCreatePassword = async (formData: z.infer<typeof SignInWithPasswordSchema>) => {
+        const payload = {
+            password: formData.password,
+        };
+
+        await authService
+            .setPassword(payload)
+            .then(async () => {
+                toast.success("Sucesso!", {
+                    description: "Senha cadastrada com sucesso.",
+                });
+                await handleSignInRedirection();
+            })
+            .catch((err) => {
+                toast.error("Ops!", {
+                    description: "Aconteceu algum erro enquanto sua senha estava sendo cadastrada. Por Favor tente novamente.",
+                })
             });
-            route.push('/onboarding')
-        })
-    }
+    };
+
+    const handleGoToWorkspace = async () => {
+        setIsGoingToWorkspace(true);
+        await handleSignInRedirection().finally(() => {
+            setIsGoingToWorkspace(false);
+        });
+    };
 
     return (
         <>
@@ -51,7 +74,7 @@ const RegisterPassword = () => {
                 <Form {...form}>
                     <form
                         className='mx-auto mt-8 space-y-4 w-full sm:w-96'
-                        onSubmit={handleSubmit(onSubmit)}
+                        onSubmit={handleSubmit(handleCreatePassword)}
                     >
                         <FormField
                             control={form.control}
@@ -105,7 +128,7 @@ const RegisterPassword = () => {
                         <Button type='submit' variant={"default"} size={"lg"} loading={isSubmitting} disabled={isSubmitting || !isValid} className='border-custom-primary-100 text-white  w-full'>
                             Continuar
                         </Button>
-                        <Button type='button' onClick={() => route.push('/onboarding')} variant={"outline"} size={"lg"} className='border-custom-primary-1000 text-custom-primary-1000  w-full'>
+                        <Button type='button' onClick={handleGoToWorkspace} loading={isGoingToWorkspace} variant={"outline"} size={"lg"} className='border-custom-primary-1000 text-custom-primary-1000  w-full'>
                             Pular Etapa
                         </Button>
                     </form>
@@ -115,4 +138,4 @@ const RegisterPassword = () => {
     )
 }
 
-export default RegisterPassword
+export default SignInOptionalSetPasswordForm

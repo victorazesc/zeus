@@ -1,6 +1,6 @@
 
-import { sendOtpEmail } from "@/actions/notify.action";
-import { verifyUser } from "@/actions/user.action";
+import { sendOtpEmail } from "@/actions";
+import { verifyUser } from "@/actions";
 import { NextResponse } from "next/server"
 
 export async function POST(_request: Request) {

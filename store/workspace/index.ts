@@ -23,7 +23,7 @@ export interface IWorkspaceRootStore {
   // fetch actions
   fetchWorkspaces: () => Promise<IWorkspace[]>;
   // crud actions
-  // createWorkspace: (data: Partial<IWorkspace>) => Promise<IWorkspace>;
+  createWorkspace: (data: Partial<IWorkspace>) => Promise<IWorkspace>;
   // updateWorkspace: (workspaceSlug: string, data: Partial<IWorkspace>) => Promise<IWorkspace>;
   // deleteWorkspace: (workspaceSlug: string) => Promise<void>;
   // sub-stores
@@ -55,7 +55,7 @@ export class WorkspaceRootStore implements IWorkspaceRootStore {
       getWorkspaceById: action,
       // actions
       fetchWorkspaces: action,
-      // createWorkspace: action,
+      createWorkspace: action,
       // updateWorkspace: action,
       // deleteWorkspace: action,
     });
@@ -76,7 +76,6 @@ export class WorkspaceRootStore implements IWorkspaceRootStore {
    */
   get currentWorkspace() {
     const workspaceSlug = this.router.workspaceSlug;
-    console.log(this.router)
     if (!workspaceSlug) return null;
     const workspaceDetails = Object.values(this.workspaces ?? {})?.find((w) => w.slug === workspaceSlug);
     return workspaceDetails || null;
@@ -123,13 +122,13 @@ export class WorkspaceRootStore implements IWorkspaceRootStore {
    * create workspace using the workspace data
    * @param data
    */
-  // createWorkspace = async (data: Partial<IWorkspace>) =>
-  //   await this.workspaceService.createWorkspace(data).then((response) => {
-  //     runInAction(() => {
-  //       this.workspaces = set(this.workspaces, response.id, response);
-  //     });
-  //     return response;
-  //   });
+  createWorkspace = async (data: Partial<IWorkspace>) =>
+    await this.workspaceService.createWorkspace(data).then((response) => {
+      runInAction(() => {
+        this.workspaces = set(this.workspaces, response.id, response);
+      });
+      return response;
+    });
 
   /**
    * update workspace using the workspace slug and new workspace data

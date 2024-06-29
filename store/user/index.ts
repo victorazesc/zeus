@@ -3,6 +3,8 @@ import { UserService } from "@/services/user.service";
 import { User } from "@prisma/client";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { RootStore } from "../root.store";
+import { IUserSettings } from "@/types/user";
+import { IUserMembershipStore, UserMembershipStore } from "./user-membership.store";
 
 export interface IUserRootStore {
   // states
@@ -16,10 +18,14 @@ export interface IUserRootStore {
   dashboardInfo: any;
   // fetch actions
   fetchCurrentUser: () => Promise<User>;
+  fetchCurrentUserSettings: () => Promise<IUserSettings>;
   // crud actions
   updateUserOnBoard: () => Promise<void>;
   updateTourCompleted: () => Promise<void>;
   updateCurrentUser: (data: Partial<User>) => Promise<User>;
+
+  signOut: () => Promise<void>;
+  membership: IUserMembershipStore;
 }
 
 export class UserRootStore implements IUserRootStore {
@@ -31,6 +37,7 @@ export class UserRootStore implements IUserRootStore {
   currentUser: User | null = null;
   isUserInstanceAdmin: boolean | null = null;
   currentUserSettings: any | null = null;
+  membership: UserMembershipStore;
 
   dashboardInfo: any = null;
 
@@ -52,13 +59,16 @@ export class UserRootStore implements IUserRootStore {
       dashboardInfo: observable,
       // action
       fetchCurrentUser: action,
+      fetchCurrentUserSettings: action,
       updateUserOnBoard: action,
       updateTourCompleted: action,
       updateCurrentUser: action,
+      signOut: action,
     });
     this.rootStore = _rootStore;
     this.userService = new UserService();
     this.authService = new AuthService();
+    this.membership = new UserMembershipStore(_rootStore);
   }
 
   /**
@@ -151,4 +161,29 @@ export class UserRootStore implements IUserRootStore {
       throw error;
     }
   };
+
+  /**
+ * Fetches the current user settings
+ * @returns Promise<IUserSettings>
+ */
+  fetchCurrentUserSettings = async () =>
+    await this.userService.currentUserSettings().then((response) => {
+      runInAction(() => {
+        this.currentUserSettings = response;
+      });
+      return response;
+    });
+
+  /**
+   * Signs out the current user
+   * @returns Promise<void>
+   */
+  signOut = async () =>
+    await this.authService.signOut().then(() => {
+      runInAction(() => {
+        this.currentUser = null;
+        this.isUserLoggedIn = false;
+      });
+      this.rootStore.resetOnSignout();
+    });
 }

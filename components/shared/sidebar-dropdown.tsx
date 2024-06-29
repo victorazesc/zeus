@@ -4,7 +4,6 @@ import { IWorkspace } from "@/types/workspace";
 import { Menu, Transition } from "@headlessui/react";
 import { Check, ChevronDown, CircleUserRound, LoaderCircle, LogOut, Mails, PlusSquare, Settings, UserCircle2 } from "lucide-react";
 import { observer } from "mobx-react-lite";
-import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Fragment, useState } from "react";
@@ -14,6 +13,7 @@ import { mutate } from "swr";
 import { Avatar } from "../ui/avatar";
 import { Loader } from "../ui/loader";
 import { Skeleton } from "../ui/skeleton";
+import { AuthService } from "@/services/auth.service";
 const userLinks = (workspaceSlug: string, userId: number | null) => [
   {
     key: "workspace_invites",
@@ -46,6 +46,9 @@ const profileLinks = (workspaceSlug: string, userId: number | null) => [
     link: "/profile",
   },
 ];
+
+const authService = new AuthService()
+
 export const WorkspaceSidebarDropdown = observer(() => {
   const { workspaceSlug } = useParams()
   const router = useRouter()
@@ -74,7 +77,7 @@ export const WorkspaceSidebarDropdown = observer(() => {
   const workspacesList = Object.values(workspaces ?? {});
 
   const handleSignOut = async () => {
-    await signOut()
+    await authService.signOut()
       .then(() => {
         mutate("CURRENT_USER_DETAILS", null)
         router.push("/");

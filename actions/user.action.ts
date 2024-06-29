@@ -1,12 +1,12 @@
-import { User } from "@prisma/client";
+import { User, Workspace } from "@prisma/client";
 import { kv } from "@vercel/kv";
-import { getToken } from "next-auth/jwt";
-import { GoogleProfile } from "next-auth/providers/google";
 import { NextRequest } from "next/server";
 import { comparePasswords, hashPassword } from "../lib/auth";
-import { signJwtAccessToken } from "../lib/jwt";
+import { getTokens, verifyJwt } from "../lib/jwt";
 import prisma from "../lib/prisma";
-
+import { IUserSettings } from "@/types/user";
+import { getUserWorkspaces } from "./workspace.action";
+import { headers } from 'next/headers'
 interface IcreateUser {
     avatar?: string
     name?: string
@@ -14,7 +14,7 @@ interface IcreateUser {
     isSocialAuth?: boolean
 }
 
-export async function getuser({
+export async function getUser({
     email
 }: {
     email?: string;
@@ -22,7 +22,7 @@ export async function getuser({
     return await prisma.user.findUnique({ where: { email: email } });
 }
 
-export async function createUser({ email, isSocialAuth, avatar, name }: IcreateUser) {
+export async function createUser({ email, isSocialAuth, avatar, name }: IcreateUser): Promise<User> {
     try {
         if (!email) throw new Error('Email, não foi informado')
         return await prisma.user.create({
@@ -40,7 +40,7 @@ export async function createUser({ email, isSocialAuth, avatar, name }: IcreateU
 
 }
 
-export async function updateCurrentUser({ req, data }: { req: NextRequest, data: User | any }) {
+export async function updateCurrentUser({ req, data }: { req: NextRequest, data: Partial<User> | any }) {
     try {
         const currentUser = await getMe(req)
 
@@ -74,76 +74,9 @@ export async function verifyUser({
     }
 }
 
-export async function validadeOtpAndSingUp() {
-}
-
-export async function validadeOtpAndSingIn({ email, inputedOtp }: { email: string, inputedOtp?: string }) {
-    const cachedOtp = await kv.get(`otp_${email}`);
-    if (cachedOtp != inputedOtp) {
-        return null
-    }
-    let user = await getuser({ email })
-
-    if (!user) {
-        user = await createUser({ email })
-    }
-
-    const { password, ...userWithoutPass } = user;
-    const accessToken = signJwtAccessToken(userWithoutPass);
-    const result = {
-        ...userWithoutPass,
-        accessToken,
-    };
-
-    await kv.del(`otp_${email}`)
-    return result;
-
-}
-
-export async function validateGoogleSign({ profile }: { profile: GoogleProfile }) {
-    let user = await getuser({ email: profile.email })
-    if (!user) {
-        const createUserPayload: IcreateUser = {
-            avatar: profile.picture,
-            email: profile.email,
-            name: profile.name,
-            isSocialAuth: true,
-        }
-        user = await createUser(createUserPayload)
-    }
-
-    const { password, ...userWithoutPass } = user;
-    const accessToken = signJwtAccessToken(userWithoutPass);
-    const result = {
-        ...userWithoutPass,
-        accessToken,
-    };
-
-    return result;
-
-}
-
-export async function signWithPassword({ email, sendedPassword }: { email?: string, sendedPassword?: string }) {
-    if (!sendedPassword) return null
-    const user = await getuser({ email })
-    if (!user) return null
-
-
-    if (user && await comparePasswords(sendedPassword, user.password)) {
-        const { password, ...userWithoutPass } = user;
-        const accessToken = signJwtAccessToken(userWithoutPass);
-        const result = {
-            ...userWithoutPass,
-            accessToken,
-        };
-        return result;
-    } else return null;
-
-}
-
 export async function getMe(req: NextRequest) {
     try {
-        const session = await getToken({ req }) as User
+        const session = verifyJwt(req)
         if (!session) throw new Error('Usuario não autenticado.')
 
         return session
@@ -162,6 +95,50 @@ export async function setPassword(req: NextRequest, password: string) {
         await prisma.user.update({ where: { email: user.email }, data: { password: hash, isAccessPassword: true } })
         return true
     } catch (error: any) {
+        throw new Error(error)
+    }
+
+}
+
+export async function retrieveUserSettings(req: NextRequest): Promise<IUserSettings> {
+
+    try {
+        const currentUser = await getMe(req)
+        const user = await prisma.user.findUnique({ where: { id: currentUser.id } });
+        if (!user) {
+            throw new Error('user_not_found')
+        }
+        const getUserLastWorkspace = async () => {
+            return await prisma.workspace.findUnique({ where: { id: user.lastWorkspaceId as number } });
+        }
+
+        const userWorkspace = await getUserLastWorkspace()
+
+        if (userWorkspace) {
+            return {
+                id: user.id,
+                email: user.email,
+                workspace: {
+                    last_workspace_id: userWorkspace.id,
+                    last_workspace_slug: userWorkspace.slug,
+                    fallback_workspace_id: null,
+                    fallback_workspace_slug: null,
+                }
+            }
+        }
+
+        return {
+            id: user.id,
+            email: user.email,
+            workspace: {
+                last_workspace_id: null,
+                last_workspace_slug: null,
+                fallback_workspace_id: null,
+                fallback_workspace_slug: null,
+            }
+
+        }
+    } catch (error: Error | any) {
         throw new Error(error)
     }
 

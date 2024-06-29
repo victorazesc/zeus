@@ -1,15 +1,14 @@
 import React from "react";
 import { observer } from "mobx-react-lite";
 import { Controller, useForm } from "react-hook-form";
-import { SessionContextValue, TOnboardingSteps } from "@/types/user";
-import { useSession } from "next-auth/react";
-import { OnboardingSidebar } from "./OnboardingSidebar";
-import { OnboardingStepIndicator } from "./StepIndicator";
-import { WorkspaceForm } from "../forms/registerWorkspaceForm";
+import { TOnboardingSteps } from "@/types/user";
+import { OnboardingStepIndicator } from "./step-indicator";
 import { WorkspaceDetailSchema } from "@/lib/validations/workspace";
 import { z } from "zod";
 import { WorkspaceCardInformation } from "../cards/workspaceCardInformation";
 import { WorkspaceDetailsForm } from "../forms/workspaceDetailsForm";
+import { useUser } from "@/hooks/stores/use-user";
+import { useWorkspace } from "@/hooks/stores/use-workspace";
 
 type Props = {
     finishOnboarding: () => Promise<void>;
@@ -20,7 +19,8 @@ type Props = {
 export const Worskspace: React.FC<Props> = observer((props) => {
     const { stepChange, setTryDiffAccount } = props;
     // store hooks
-    const { data } = useSession() as SessionContextValue
+    const { currentUser } = useUser();
+    const { currentWorkspace } = useWorkspace();
     // form info
     const {
         handleSubmit,
@@ -30,11 +30,7 @@ export const Worskspace: React.FC<Props> = observer((props) => {
         formState: { errors, isSubmitting },
     } = useForm<z.infer<typeof WorkspaceDetailSchema>>({
         defaultValues: {
-            tradeName: "",
-            name: "",
             logo: "",
-            cnpj: "",
-            ie: "",
             cep: "",
             address: "",
             number: "",
@@ -51,7 +47,7 @@ export const Worskspace: React.FC<Props> = observer((props) => {
 
     
     const handleNextStep = async () => {
-        if (!data?.user) return;
+        if (!currentUser) return;
         await stepChange({ workspace_join: true, workspace_create: true });
     };
 
@@ -60,7 +56,7 @@ export const Worskspace: React.FC<Props> = observer((props) => {
             <div className="fixed hidden my-16  px-7 h-full lg:block">
                 <Controller
                     control={control}
-                    name="name"
+                    name="email"
                     render={({ field: { value } }) => (
                         <WorkspaceCardInformation
                             control={control}
@@ -75,13 +71,13 @@ export const Worskspace: React.FC<Props> = observer((props) => {
             <div className="ml-auto w-full lg:w-2/3 ">
                 <div className="mx-auto my-16 w-full px-7 lg:w-4/5 lg:px-0">
                     <div className="flex items-center justify-between">
-                        <p className="text-xl font-semibold text-onboarding-text-200 sm:text-2xl">Complete os dados de sua empresa</p>
+                        <p className="text-xl font-semibold text-onboarding-text-200 sm:text-2xl">Onde sua empresa está localizada?</p>
                         <OnboardingStepIndicator step={3} />
                     </div>
                     <WorkspaceDetailsForm
                         watch={watch}
                         stepChange={stepChange}
-                        user={data?.user ?? undefined}
+                        user={currentUser ?? undefined}
                         control={control}
                         handleSubmit={handleSubmit}
                         setValue={setValue}
