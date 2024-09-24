@@ -152,9 +152,10 @@ export class UserRootStore implements IUserRootStore {
         } as User;
       });
       const response = await this.userService.updateMe(data);
-      runInAction(() => {
-        this.currentUser = response;
-      });
+      console.log(response, 'veio do update')
+      // runInAction(() => {
+      //   this.currentUser = response;
+      // });
       return response;
     } catch (error) {
       this.fetchCurrentUser();

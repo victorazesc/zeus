@@ -46,7 +46,7 @@ export async function updateCurrentUser({ req, data }: { req: NextRequest, data:
 
         return await prisma.user.update({
             where: {
-                email: currentUser.email
+                email: currentUser?.email
             },
             data: { ...data }
         })
@@ -78,8 +78,7 @@ export async function getMe(req: NextRequest) {
     try {
         const session = verifyJwt(req)
         if (!session) throw new Error('Usuario não autenticado.')
-
-        return session
+        return  await getUser({email: session.email})
 
     } catch (error: any) {
         throw new Error(error)
@@ -104,7 +103,7 @@ export async function retrieveUserSettings(req: NextRequest): Promise<IUserSetti
 
     try {
         const currentUser = await getMe(req)
-        const user = await prisma.user.findUnique({ where: { id: currentUser.id } });
+        const user = await prisma.user.findUnique({ where: { id: currentUser?.id } });
         if (!user) {
             throw new Error('user_not_found')
         }

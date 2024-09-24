@@ -51,7 +51,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
   } = useForm<z.infer<typeof CreateUser>>({
     defaultValues: {
       name: user?.name ?? "",
-      avatar: user?.avatar ?? "",
+      avatar: "https://zeus-public-images.s3.us-east-1.amazonaws.com/Vector%20(1).png" ?? "",
       useCase: user?.useCase ?? ""
     },
     mode: "onChange",
@@ -89,12 +89,13 @@ export const UserDetails: React.FC<Props> = observer((props) => {
       <div className="fixed hidden h-full w-1/5 max-w-[320px] lg:block">
         <Controller
           control={control}
-          name="name"
+          name="avatar"
           render={({ field: { value } }) => (
             <OnboardingSidebar
               userFullName={value?.length === 0 ? undefined : value}
               showProject
               workspaceName={workspaceName}
+              control={control}
             />
           )}
         />
@@ -121,7 +122,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
           <form onSubmit={handleSubmit(onSubmit)} className="ml-auto  md:w-11/12">
             <div className="flex items-center justify-between">
               <p className="text-xl font-semibold sm:text-2xl">Como podemos chamar você? </p>
-              <OnboardingStepIndicator step={1} />
+              <OnboardingStepIndicator step={2} />
             </div>
             <div className="mt-6 flex w-full ">
               <button type="button" onClick={() => setIsImageUploadModalOpen(true)}>

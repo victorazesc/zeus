@@ -48,7 +48,9 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
 
                     await createWorkspace(formData)
                         .then(async (res: IWorkspace) => {
-
+                            updateCurrentUser({
+                                
+                            })
                             toast.success("Sucesso!", {
                                 description: "Espaço de Trabalho criado com sucesso.",
                             });

@@ -40,7 +40,6 @@ export const Worskspace: React.FC<Props> = observer((props) => {
             complement: "",
             email: "",
             phone: "",
-
         },
         mode: "onChange",
     });
@@ -48,7 +47,7 @@ export const Worskspace: React.FC<Props> = observer((props) => {
     
     const handleNextStep = async () => {
         if (!currentUser) return;
-        await stepChange({ workspace_join: true, workspace_create: true });
+        await stepChange({ workspace_join: true, workspace_create: true, workspace_information: true });
     };
 
     return (

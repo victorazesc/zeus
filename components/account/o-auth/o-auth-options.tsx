@@ -4,6 +4,8 @@ import { GoogleSignInButton } from "./google-sign-in";
 import { toast } from "sonner";
 import { AppConfigService } from "@/services/app_config.service";
 import useSWR from "swr";
+import { Spinner } from "@/components/ui/circular-spinner";
+import { useState } from "react";
 
 type Props = {
   handleSignInRedirection: () => Promise<void>;
@@ -15,12 +17,14 @@ const authService = new AuthService();
 const appConfig = new AppConfigService();
 export const OAuthOptions: React.FC<Props> = observer((props) => {
   const { handleSignInRedirection, type } = props;
+  const [isLoading, setIsLoading] = useState(false)
   // mobx store
   const { data: envConfig } = useSWR("APP_CONFIG", () => appConfig.envConfig());
 
   const handleGoogleSignIn = async ({ clientId, credential }: any) => {
     try {
       if (clientId && credential) {
+        setIsLoading(true)
         const socialAuthPayload = {
           medium: "google",
           credential,
@@ -29,6 +33,7 @@ export const OAuthOptions: React.FC<Props> = observer((props) => {
         const response = await authService.socialAuth(socialAuthPayload);
 
         if (response) handleSignInRedirection();
+        setIsLoading(false)
       } else throw Error("Cant find credentials");
     } catch (error: any) {
       toast.error("Ah, não! algo deu errado.", {
@@ -36,6 +41,15 @@ export const OAuthOptions: React.FC<Props> = observer((props) => {
       })
     }
   };
+
+
+  if (isLoading) return (
+    <div className="grid h-screen fixed top-0 left-0 right-0 place-items-center bg-custom-background-100 p-4">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <Spinner />
+      </div>
+    </div>
+  );
 
   return (
     <>

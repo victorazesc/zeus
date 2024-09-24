@@ -1,5 +1,5 @@
 import { WorkspaceDetailSchema } from "@/lib/validations/workspace";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, MapPin } from "lucide-react";
 import { Control, Controller, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { z } from "zod";
 import { Avatar } from "../ui/avatar";
@@ -16,12 +16,12 @@ export const WorkspaceCardInformation: React.FC<Props> = (props) => {
 
 
     return (
-        <div className="fixed hidden p-4 w-1/5 lg:block bg-primary-0">
-            <p className="font-bold">Dados de seu espaço de trabalho</p>
+        <div className="fixed hidden p-4 w-1/5 lg:block bg-custom-background-90 rounded-lg">
+            <p className="font-bold text-center">Dados de seu espaço de trabalho</p>
             {control && setValue ? (
                 <div>
-                    <div className="flex w-full items-center gap-y-2  border border-transparent px-4 pt-6 transition-all">
-
+                    <div className="flex w-full items-center gap-y-2  border border-transparent px-4 pt-6 transition-all relative overflow-hidden">
+                        <MapPin size={100} className="absolute right-0 text-slate-800 opacity-10"></MapPin>
                         <div className="mx-2 flex w-full flex-col flex-shrink break-words gap-1">
                             <div className="flex gap-4 items-center">
                                 {/* <Controller
@@ -76,7 +76,7 @@ export const WorkspaceCardInformation: React.FC<Props> = (props) => {
                                     </span> */}
                                 </div>
                             </div>
-                            <span className="flex text-sm font-medium text-custom-text-400 mt-4">
+                            <span className="flex text-sm font-medium mt-4">
                                 <Controller
                                     control={control}
                                     name="address"
@@ -95,7 +95,7 @@ export const WorkspaceCardInformation: React.FC<Props> = (props) => {
                                     }}
                                 />
                             </span>
-                            <span className="flex text-sm font-medium text-custom-text-400">
+                            <span className="flex text-sm font-medium">
                                 <Controller
                                     control={control}
                                     name="neighborhood"
@@ -130,7 +130,7 @@ export const WorkspaceCardInformation: React.FC<Props> = (props) => {
                                 name="email"
                                 render={({ field: { value } }) => {
                                     return (
-                                        <p className="text-sm font-medium text-custom-text-400">{value.length > 0 ? "Email: " + value : "Email: exemplo@email.com"}</p>
+                                        <p className="text-sm font-medium">{value.length > 0 ? "Email: " + value : "Email: exemplo@email.com"}</p>
                                     )
 
                                 }}
@@ -140,7 +140,7 @@ export const WorkspaceCardInformation: React.FC<Props> = (props) => {
                                 name="phone"
                                 render={({ field: { value } }) => {
                                     return (
-                                        <p className="text-sm font-medium text-custom-text-400">{value.length > 0 ? "Fone: " + value : "Fone: (99) 9999-999"}</p>
+                                        <p className="text-sm font-medium">{value.length > 0 ? "Fone: " + value : "Fone: (99) 9999-999"}</p>
                                     )
                                 }}
                             />

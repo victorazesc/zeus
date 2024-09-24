@@ -100,6 +100,7 @@ export const OnboardingSidebar: React.FC<Props> = (props) => {
                             <h4 className="truncate text-base font-medium text-custom-sidebar-text-400">{workspaceName}</h4>
                             <ChevronDown className={`mx-1 h-4 w-4 flex-shrink-0 text-custom-sidebar-text-400 duration-300`} />
                         </div>
+                        
                         <div className="flex flex-shrink-0">
                             <Avatar
                                 name={userFullName ?? currentUser?.email}

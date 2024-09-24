@@ -8,7 +8,10 @@ export class FileService extends APIService {
     
     async uploadUserFile(files: FormData): Promise<any> {
         return await this.post("api/users/file-assets", files)
-            .then((response) => response?.data)
+            .then((response) => 
+                
+                response?.data
+        )
             .catch((error) => {
                 throw error?.response?.data;
             });

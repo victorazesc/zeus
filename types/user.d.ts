@@ -7,7 +7,7 @@ export interface ISession {
 export type TOnboardingSteps = {
     profile_complete: boolean;
     workspace_create: boolean;
-    workspace_invite: boolean;
+    workspace_information: boolean;
     workspace_join: boolean;
 };
 

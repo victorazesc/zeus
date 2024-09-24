@@ -8,6 +8,7 @@ export const WorkspaceCreateSchema = z.object({
     name: z.string().min(4),
     document: z.string().min(4),
     ie: z.string().min(4).optional(),
+    avatar: z.string().min(4).optional(),
 });
 export const WorkspaceDetailSchema = z.object({
     logo: z.string().min(4),

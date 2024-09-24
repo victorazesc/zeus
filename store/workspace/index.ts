@@ -10,6 +10,7 @@ import { RootStore } from "../root.store";
 // import { IWebhookStore, WebhookStore } from "./webhook.store";
 import { IWorkspace } from "@/types/workspace";
 import { WorkspaceService } from "@/services/workspace.service";
+import { normalizeAccents } from "@/helpers/common.helper";
 
 export interface IWorkspaceRootStore {
   // observables
@@ -75,8 +76,9 @@ export class WorkspaceRootStore implements IWorkspaceRootStore {
    * computed value of current workspace based on workspace slug saved in the query store
    */
   get currentWorkspace() {
-    const workspaceSlug = this.router.workspaceSlug;
+    const workspaceSlug = this.router.workspaceSlug ? decodeURIComponent(this.router.workspaceSlug) : null;
     if (!workspaceSlug) return null;
+
     const workspaceDetails = Object.values(this.workspaces ?? {})?.find((w) => w.slug === workspaceSlug);
     return workspaceDetails || null;
   }

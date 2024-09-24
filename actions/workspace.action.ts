@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import prisma from "../lib/prisma";
 import { getMe } from "./user.action";
 import { IWorkspace } from "@/types/workspace";
-import { Address, Workspace } from "@prisma/client";
+import { Address, Prisma, Workspace } from "@prisma/client";
 import { isNumber, normalizeAccents, removeSpecialCharacters } from "@/helpers/common.helper";
 
 class RegisterAddressDTO {
@@ -76,16 +76,19 @@ export async function createWorkspace({
 
 export async function updateWorkspace({
     slug,
-    data
+    data,
+    req
 }: {
     slug: string
     data: Address
+    req: NextRequest
 }) {
 
     try {
         const where = {
             ...(isNumber(slug) ? { id: Number(slug) } : { slug })
         }
+        const currentUser = await getMe(req)
 
         return await prisma.$transaction(async (tx) => {
             const address = new RegisterAddressDTO(data)
@@ -96,15 +99,29 @@ export async function updateWorkspace({
 
             if (requestedWorkspace.addressId) {
                 await tx.address.update({ where: { id: requestedWorkspace.addressId }, data: address })
-                return await tx.workspace.update({ where, data: { ...workspace } })
+                await tx.workspace.update({ where, data: { ...workspace } })
             } else {
                 const createdAddress = await tx.address.create({ data: address })
-                return await tx.workspace.update({
+                await tx.workspace.update({
                     where,
                     data: { ...workspace, addressId: createdAddress.id, }
                 })
             }
 
+            await tx.user.update({
+                where: {
+                    email: currentUser.email
+                },
+                data: {
+                    onboardingStep: {
+                        ...currentUser.onboardingStep as Prisma.JsonObject,
+                        workspace_join: true,
+                        workspace_create: true,
+                        workspace_information: true,
+                    },
+                    isOnbordered: true
+                }
+            })
         })
     } catch (err) {
         console.error("Error updating workspace:", err);

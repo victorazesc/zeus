@@ -75,46 +75,47 @@ const OnboardingPage: NextPageWithLayout = observer(() => {
     useEffect(() => {
         const handleStepChange = async () => {
             if (!user) return;
-            const onboardingStep = user.onboardingStep as any
-            // const onboardingStep = {
-            //     "profile_complete": true,
-            //     "workspace_create": false,
-            //     "workspace_join": false,
-            //     "workspace_information": false
-            // }
-
-            if (
-                !onboardingStep.workspace_join &&
-                !onboardingStep.workspace_create &&
-                workspacesList &&
-                workspacesList?.length > 0
-            ) {
-                await updateCurrentUser({
-                    onboardingStep: {
-                        ...user.onboardingStep as Prisma.JsonObject,
-                        workspace_join: true,
-                        workspace_create: true,
-                    },
-                    lastWorkspaceId: workspacesList[0]?.id,
-                });
-                setStep(2);
-                return;
+            // const onboardingStep = user.onboardingStep as any
+            const onboardingStep = {
+                "profile_complete": true,
+                "workspace_create": true,
+                "workspace_join": true,
+                "workspace_information": false
             }
 
-            if (!onboardingStep.profile_complete && !onboardingStep.workspace_join && !onboardingStep.workspace_create) {
+            // if (
+            //     !onboardingStep.workspace_join &&
+            //     !onboardingStep.workspace_create &&
+            //     workspacesList &&
+            //     workspacesList?.length > 0
+            // ) {
+            //     console.log('caiu no update')
+            //     await updateCurrentUser({
+            //         onboardingStep: {
+            //             ...user.onboardingStep as Prisma.JsonObject,
+            //             workspace_join: true,
+            //             workspace_create: true,
+            //         },
+            //         lastWorkspaceId: workspacesList[0]?.id,
+            //     });
+            //     setStep(2);
+            //     return;
+            // }
+
+            if (!onboardingStep.profile_complete && !onboardingStep.workspace_join && !onboardingStep.workspace_create && !onboardingStep.workspace_information) {
                 setStep(1);
             }
 
             if (!onboardingStep.profile_complete && onboardingStep.workspace_join && onboardingStep.workspace_create && onboardingStep.workspace_information) {
-                setStep(1);
-            }
-
-            if (onboardingStep.profile_complete && !onboardingStep.workspace_join && !onboardingStep.workspace_create) {
                 setStep(2);
             }
 
+            if (onboardingStep.profile_complete && !onboardingStep.workspace_join && !onboardingStep.workspace_create) {
+                setStep(1);
+            }
+
             if (onboardingStep.workspace_join || onboardingStep.workspace_create) {
-                if (!onboardingStep.workspace_information && !onboardingStep.profile_complete) setStep(1);
+                if (!onboardingStep.workspace_information && !onboardingStep.profile_complete) setStep(2);
                 if (onboardingStep.profile_complete && !onboardingStep.workspace_information) setStep(3);
             }
 
@@ -136,19 +137,19 @@ const OnboardingPage: NextPageWithLayout = observer(() => {
     }
     return (
         <>
-            <section className="h-full overflow-auto rounded-t-md bg-custom-background-90 px-0 pb-56 md:px-7">
+            <section className="h-full overflow-auto rounded-t-md bg-custom-background-100 px-0 pb-56 md:px-7">
                 {user && step !== null && workspaces ? (<>
                     <div className="absolute top-12 right-36 text-white"><Button onClick={handleSignOut}>sair</Button></div>
                     <div className="flex w-full">
                         {step === 1 ? (
-                            <UserDetails setUserName={(value) => setValue("name", value)} user={user} workspacesList={workspacesList} />
-                        ) : step === 2 ? (
                             <JoinWorkspaces
                                 setTryDiffAccount={() => {
                                 }}
                                 finishOnboarding={finishOnboarding}
                                 stepChange={stepChange}
                             />
+                        ) : step === 2 ? (
+                            <UserDetails setUserName={(value) => setValue("name", value)} user={user} workspacesList={workspacesList} />
                         ) : (
                             <Worskspace finishOnboarding={function (): Promise<void> {
                                 throw new Error("Function not implemented.");

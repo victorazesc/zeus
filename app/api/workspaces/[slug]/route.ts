@@ -5,6 +5,9 @@ export async function PUT(_request: NextRequest, { params }: { params: { slug: s
     const body = await _request.json()
     const slug = params.slug
     const { ...data } = body
-    const result = await updateWorkspace({ slug, data })
+    const result = await updateWorkspace({ slug, data, req: _request })
     return NextResponse.json(result)
 }
+
+
+
