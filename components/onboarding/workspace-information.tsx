@@ -16,7 +16,7 @@ type Props = {
     setTryDiffAccount: () => void;
 };
 
-export const Worskspace: React.FC<Props> = observer((props) => {
+export const WorkspaceInformation: React.FC<Props> = observer((props) => {
     const { stepChange, setTryDiffAccount } = props;
     // store hooks
     const { currentUser } = useUser();

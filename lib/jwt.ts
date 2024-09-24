@@ -10,6 +10,7 @@ const DEFAULT_SIGN_OPTION: SignOption = {
 };
 
 export function getTokens(payload: JwtPayload, options: SignOption = DEFAULT_SIGN_OPTION) {
+
   const secretKey = process.env.ACCESS_TOKEN_SECRET;
   const refreshSecretKey = process.env.REFRESH_TOKEN_SECRET;
 

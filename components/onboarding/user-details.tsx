@@ -51,7 +51,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
   } = useForm<z.infer<typeof CreateUser>>({
     defaultValues: {
       name: user?.name ?? "",
-      avatar: "https://zeus-public-images.s3.us-east-1.amazonaws.com/Vector%20(1).png" ?? "",
+      avatar: user?.avatar ?? "",
       useCase: user?.useCase ?? ""
     },
     mode: "onChange",
@@ -95,7 +95,7 @@ export const UserDetails: React.FC<Props> = observer((props) => {
               userFullName={value?.length === 0 ? undefined : value}
               showProject
               workspaceName={workspaceName}
-              control={control}
+              control={control as any}
             />
           )}
         />

@@ -3,7 +3,7 @@ import prisma from "../lib/prisma";
 import { getMe } from "./user.action";
 import { IWorkspace } from "@/types/workspace";
 import { Address, Prisma, Workspace } from "@prisma/client";
-import { isNumber, normalizeAccents, removeSpecialCharacters } from "@/helpers/common.helper";
+import { isNumber, removeSpecialCharacters } from "@/helpers/common.helper";
 
 class RegisterAddressDTO {
     cep: string | null;
@@ -61,6 +61,7 @@ export async function createWorkspace({
 }) {
     try {
         const user = await getMe(req)
+        if (!user) return null
         const workspace = await prisma.workspace.create({
             data: {
                 ...data,
@@ -89,7 +90,7 @@ export async function updateWorkspace({
             ...(isNumber(slug) ? { id: Number(slug) } : { slug })
         }
         const currentUser = await getMe(req)
-
+        if(!currentUser) return null
         return await prisma.$transaction(async (tx) => {
             const address = new RegisterAddressDTO(data)
             const workspace = new UpdateWorkspaceExtraDataDTO(data)
@@ -132,6 +133,7 @@ export async function updateWorkspace({
 export async function getUserWorkspaces(req: NextRequest) {
     try {
         const user = await getMe(req)
+        if(!user) return null
         const workspaces = await prisma.workspace.findMany({
             where: { ownerId: user.id }
         });

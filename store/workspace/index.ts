@@ -20,7 +20,7 @@ export interface IWorkspaceRootStore {
   // workspacesCreatedByCurrentUser: IWorkspace[] | null;
   // computed actions
   getWorkspaceBySlug: (workspaceSlug: string) => IWorkspace | null;
-  getWorkspaceById: (workspaceId: number | null) => IWorkspace | null;
+  getWorkspaceById: (workspaceId: number) => IWorkspace | null;
   // fetch actions
   fetchWorkspaces: () => Promise<IWorkspace[]>;
   // crud actions
@@ -105,7 +105,7 @@ export class WorkspaceRootStore implements IWorkspaceRootStore {
    * get workspace info from the array of workspaces in the store using workspace id
    * @param workspaceId
    */
-  getWorkspaceById = (workspaceId: number | null) => this.workspaces?.[workspaceId] || null; // TODO: use undefined instead of null
+  getWorkspaceById = (workspaceId: number) => this.workspaces?.[workspaceId] || null; // TODO: use undefined instead of null
 
   /**
    * fetch user workspaces from API

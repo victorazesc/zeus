@@ -2,12 +2,11 @@ import { UserAuthWrapper } from "@/lib/user-wrapper";
 import { FC, ReactNode } from "react";
 import Image from "next/image"
 
-type Props = {
+export interface IAppLayout {
     children: ReactNode;
-    gradient?: boolean;
-};
+}
 
-const DefaultLayout: FC<Props> = ({ children, gradient = false }) => (
+const DefaultLayout: FC<IAppLayout> = ({ children }) => (
     <UserAuthWrapper>
         <div className="h-screen w-full overflow-hidden bg-custom-background-100 relative">
             <div className="h-full w-full bg-onboarding-gradient-100">

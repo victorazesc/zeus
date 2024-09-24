@@ -1,6 +1,5 @@
 "use client";
 import { UserDetails } from "@/components/onboarding/user-details";
-import { Worskspace } from "@/components/onboarding/workspace";
 import { JoinWorkspaces } from "@/components/onboarding/join-workspace";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/circular-spinner";
@@ -17,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import useSWR from 'swr';
 import { z } from "zod";
+import { WorkspaceInformation } from "../../../components/onboarding/workspace-information";
 
 const workspaceService = new WorkspaceService()
 
@@ -151,7 +151,7 @@ const OnboardingPage: NextPageWithLayout = observer(() => {
                         ) : step === 2 ? (
                             <UserDetails setUserName={(value) => setValue("name", value)} user={user} workspacesList={workspacesList} />
                         ) : (
-                            <Worskspace finishOnboarding={function (): Promise<void> {
+                            <WorkspaceInformation finishOnboarding={function (): Promise<void> {
                                 throw new Error("Function not implemented.");
                             }} stepChange={function (steps: Partial<TOnboardingSteps>): Promise<void> {
                                 throw new Error("Function not implemented.");

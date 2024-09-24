@@ -11,7 +11,6 @@ async function verifyToken(idToken: string): Promise<TokenPayload | undefined> {
         idToken: idToken,
         audience: process.env.GOOGLE_CLIENT_ID,
     });
-
     const payload = ticket.getPayload();
     return payload;
 }
