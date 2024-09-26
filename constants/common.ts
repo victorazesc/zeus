@@ -17,10 +17,10 @@ export const SIDEBAR_MENU_ITEMS: {
             Icon: Home,
         },
         {
-            key: "clients",
+            key: "customers",
             label: "Clientes",
-            href: `/clients`,
-            highlight: (pathname: string, baseUrl: string) => pathname.includes(`${baseUrl}/clients`),
+            href: `/customers`,
+            highlight: (pathname: string, baseUrl: string) => pathname.includes(`${baseUrl}/customers`),
             Icon: UsersIcon,
         },
         {

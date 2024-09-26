@@ -30,15 +30,6 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
                 {currentUser && <UserGreetingsView user={currentUser} />}
 
             </div>
-            {/* <section className="container mt-4">
-                <div>
-                    <h3 className="text-xl font-semibold">Good afternoon, Victor Azevedo</h3>
-                    <h6 className="flex items-center gap-2 font-medium text-custom-text-400">
-                        <div>🌥️</div>
-                        <div>Thursday, Sep 26 16:20</div>
-                    </h6>
-                </div>
-            </section> */}
         </>
     );
 });

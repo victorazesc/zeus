@@ -82,8 +82,8 @@
     --destructive: rgba(0 62.8% 30.6%);
     --destructive-foreground: rgba(210 40% 98%);
 
-    --border: hsl(0, 0%, 20%);
-    --input: hsl(0, 0%, 20%);
+    --border: hsl(215.3 19.3% 34.5%);
+    --input: hsl(215.3 19.3% 34.5%);
     --ring: rgba(212.7 26.8% 83.9%);
 
     --color-auth-background-100: rgba(54, 58, 64);
@@ -104,7 +104,7 @@
     --color-text-100: rgba(229, 229, 229);
     --color-text-200: rgba(163, 163, 163);
     --color-text-300: rgba(115, 115, 115);
-    --color-text-400: rgba(82, 82, 82);
+    --color-text-400: hsla(215.3 19.3% 34.5%);
 
     --color-border-100: rgba(34, 34, 34);
     /* subtle border= 1 */
