@@ -93,6 +93,7 @@
 
     --color-auth-border-100: rgba(40, 42, 45);
 
+    --color-background-200: hsl(215.3 25% 26.7%);
     --color-background-100: hsl(222.2 84% 4.9%);
     /* primary bg */
     --color-background-90: hsla(222.2 47.4% 11.2%);
