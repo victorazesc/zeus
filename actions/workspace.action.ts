@@ -84,46 +84,58 @@ export async function updateWorkspace({
     data: Address
     req: NextRequest
 }) {
-
     try {
+        // Validação básica de `data`
+        if (!data || typeof data !== 'object') {
+            throw new Error('Invalid or missing data object');
+        }
+
         const where = {
             ...(isNumber(slug) ? { id: Number(slug) } : { slug })
         }
-        const currentUser = await getMe(req)
-        if(!currentUser) return null
-        return await prisma.$transaction(async (tx) => {
-            const address = new RegisterAddressDTO(data)
-            const workspace = new UpdateWorkspaceExtraDataDTO(data)
-            const requestedWorkspace = await tx.workspace.findFirst({ where })
 
-            if (!requestedWorkspace) throw new Error("Workspace does't exists")
+        const currentUser = await getMe(req);
+        if (!currentUser) return null;
+
+        return await prisma.$transaction(async (tx) => {
+            // Validação de campos específicos de `Address`
+            const { cep, address, number, neighborhood, city, state, complement } = data;
+            if (!cep || !address || !number || !city || !state) {
+                throw new Error('Missing required address fields');
+            }
+
+            const addressDTO = new RegisterAddressDTO(data);
+            const workspace = new UpdateWorkspaceExtraDataDTO(data);
+            const requestedWorkspace = await tx.workspace.findFirst({ where });
+
+            if (!requestedWorkspace) throw new Error("Workspace doesn't exist");
 
             if (requestedWorkspace.addressId) {
-                await tx.address.update({ where: { id: requestedWorkspace.addressId }, data: address })
-                await tx.workspace.update({ where, data: { ...workspace } })
+                await tx.address.update({ where: { id: requestedWorkspace.addressId }, data: addressDTO });
+                await tx.workspace.update({ where, data: { ...workspace } });
             } else {
-                const createdAddress = await tx.address.create({ data: address })
+                const createdAddress = await tx.address.create({ data: addressDTO });
                 await tx.workspace.update({
                     where,
-                    data: { ...workspace, addressId: createdAddress.id, }
-                })
+                    data: { ...workspace, addressId: createdAddress.id }
+                });
             }
 
             await tx.user.update({
-                where: {
-                    email: currentUser.email
-                },
+                where: { email: currentUser.email },
                 data: {
                     onboardingStep: {
-                        ...currentUser.onboardingStep as Prisma.JsonObject,
+                        ...(currentUser.onboardingStep as any),
                         workspace_join: true,
                         workspace_create: true,
                         workspace_information: true,
                     },
                     isOnbordered: true
                 }
-            })
-        })
+            });
+
+            return { success: true, message: "Workspace updated successfully." };
+        });
     } catch (err) {
         console.error("Error updating workspace:", err);
         throw err;

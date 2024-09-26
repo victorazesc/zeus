@@ -2,11 +2,11 @@ import * as z from "zod";
 
 export const CreateUser = z.object({
   avatar: z.string().optional(),
-  useCase: z.string(),
+  useCase: z.string().min(1, { message: "O campo é obrigatório" }),
   name: z
     .string()
     .min(3, { message: "Minimum 3 characters." })
-    .max(20, { message: "Maximum 40 caracters." })
+    .max(40, { message: "Maximum 40 caracters." })
 });
 
 export const SignInSchema = z.object({

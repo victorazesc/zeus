@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { Control, Controller, FieldErrors, UseFormHandleSubmit, UseFormSetValue, UseFormWatch } from "react-hook-form";
+import { Control, Controller, FormState, UseFormHandleSubmit, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { WorkspaceDetailSchema } from "@/lib/validations/workspace";
 import { UserService } from "@/services/user.service";
 import { WorkspaceService } from "@/services/workspace.service";
-import { TOnboardingSteps } from "@/types/user";
 import { User } from "@prisma/client";
-import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { useWorkspace } from "@/hooks/stores/use-workspace";
 import { toast } from "sonner";
+import { formatCep } from "@/helpers/common.helper"; // Assumindo que já existe
+import { useRouter } from "next/navigation";
+import { useWorkspace } from "@/hooks/stores/use-workspace";
+import { useUser } from "@/hooks/stores/use-user";
 
 type Props = {
     stepChange: (steps: Partial<any>) => Promise<void>;
@@ -18,30 +18,76 @@ type Props = {
     watch: UseFormWatch<z.infer<typeof WorkspaceDetailSchema>>;
     control: Control<z.infer<typeof WorkspaceDetailSchema>, any>;
     handleSubmit: UseFormHandleSubmit<z.infer<typeof WorkspaceDetailSchema>, undefined>;
-    errors: FieldErrors<z.infer<typeof WorkspaceDetailSchema>>;
+    formState: FormState<z.infer<typeof WorkspaceDetailSchema>>;
     setValue: UseFormSetValue<z.infer<typeof WorkspaceDetailSchema>>;
-    isSubmitting: boolean;
 };
 
 // services
 const workspaceService = new WorkspaceService();
 const userService = new UserService();
 
+// Função para formatar o telefone
+const formatPhone = (value: string) => {
+    const rawValue = value.replace(/\D/g, ""); // Remove tudo que não for número
+    const maskedValue = rawValue.replace(/^(\d{2})(\d{5})(\d)/, "($1) $2-$3");
+    return maskedValue;
+};
+
 export const WorkspaceDetailsForm: React.FC<Props> = (props) => {
-    const { stepChange, user, control, handleSubmit, setValue, errors, isSubmitting, watch } = props;
-    // states
-    const [slugError, setSlugError] = useState(false);
-    const [invalidSlug, setInvalidSlug] = useState(false);
+    const { stepChange, user, control, handleSubmit, setValue, formState, watch } = props;
+    const { currentUserSettings } = useUser()
     const router = useRouter()
 
+    // Função para buscar o endereço pelo CEP usando ViaCEP
+    const fetchAddressFromCep = async (cep: string) => {
+        const sanitizedCep = cep.replace(/\D/g, ""); // Remove caracteres não numéricos
+
+        if (sanitizedCep.length !== 8) {
+            toast.error("CEP inválido. Deve ter 8 dígitos.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${sanitizedCep}/json/`);
+
+            if (!response.ok) {
+                throw new Error("Erro ao buscar o CEP.");
+            }
+
+            const data = await response.json();
+
+            if (data.erro) {
+                throw new Error("CEP não encontrado.");
+            }
+
+            // Preenche os campos automaticamente
+            setValue("address", data.logradouro || "");
+            setValue("neighborhood", data.bairro || "");
+            setValue("city", data.localidade || "");
+            setValue("state", data.uf || "");
+
+            return data;
+        } catch (error: any) {
+            toast.error("Erro ao buscar o CEP: " + error.message);
+        }
+    };
+
+    const handleCepChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const maskedValue = formatCep(event.target.value); // Aplica a máscara no campo de CEP
+        setValue("cep", maskedValue); // Atualiza o campo de CEP com a máscara
+        if (maskedValue.length === 9) { // Checa se o CEP está completo
+            await fetchAddressFromCep(maskedValue); // Busca o endereço
+        }
+    };
 
     const handleUpdateWorkspace = async (formData: z.infer<typeof WorkspaceDetailSchema>) => {
-        if (isSubmitting) return;
+        if (formState.isSubmitting) return;
 
         await workspaceService
             .updateWorkspace(formData, user?.lastWorkspaceId)
             .then(async (res) => {
-                console.log(res)
+                if (res)
+                    router.push(`/${currentUserSettings.workspace.last_workspace_slug}`)
             })
             .catch((error) => {
                 console.error(error)
@@ -56,29 +102,27 @@ export const WorkspaceDetailsForm: React.FC<Props> = (props) => {
         <form className="mt-5" onSubmit={handleSubmit(handleUpdateWorkspace)}>
             <div className="mb-8">
                 <div className="grid grid-cols-4 gap-4 my-4">
+                    {/* Campo CEP */}
                     <div>
                         <Controller
                             control={control}
                             name="cep"
-                            render={({ field: { value, ref, onChange } }) => (
+                            render={({ field }) => (
                                 <div className="relative flex items-center rounded-md bg-onboarding-background-200">
                                     <Input
                                         id="cep"
-                                        name="cep"
                                         type="text"
-                                        value={value}
-                                        onChange={(event) => {
-                                            onChange(event.target.value);
-                                            setValue("cep", event.target.value.toLocaleLowerCase().trim().replace(/ /g, "-"));
-                                        }}
+                                        {...field}
+                                        onChange={handleCepChange}
                                         placeholder="CEP"
-                                        ref={ref}
                                         className="h-[46px] w-full border-onboarding-border-100 placeholder:text-custom-text-400/50"
                                     />
                                 </div>
                             )}
                         />
                     </div>
+
+                    {/* Campo Logradouro */}
                     <div className="col-span-2">
                         <Controller
                             control={control}
@@ -255,10 +299,11 @@ export const WorkspaceDetailsForm: React.FC<Props> = (props) => {
                                         id="phone"
                                         name="phone"
                                         type="text"
-                                        value={value}
+                                        value={formatPhone(value)} // Aplica a máscara de telefone
                                         onChange={(event) => {
-                                            onChange(event.target.value);
-                                            setValue("phone", event.target.value);
+                                            const maskedValue = formatPhone(event.target.value);
+                                            onChange(maskedValue);
+                                            setValue("phone", maskedValue);
                                         }}
                                         placeholder="Telefone"
                                         ref={ref}
@@ -270,15 +315,11 @@ export const WorkspaceDetailsForm: React.FC<Props> = (props) => {
                     </div>
 
                 </div>
-
-
-                {slugError && <span className="-mt-3 text-sm text-red-500">O URL do espaço de trabalho já está em uso!</span>}
-                {invalidSlug && (
-                    <span className="text-sm text-red-500">{`O URL só pode conter ( - ), ( _ ) e caracteres alfanuméricos.`}</span>
-                )}
             </div>
             <div className="flex gap-4">
-                <Button className="text-white" type="submit" loading={isSubmitting}>Finalizar</Button>
+                <Button type='submit' loading={formState.isSubmitting} disabled={formState.isSubmitting || !formState.isValid} className='border-custom-primary-100 text-white'>
+                    Finalizar
+                </Button>
             </div>
         </form>
     );

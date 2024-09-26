@@ -9,6 +9,7 @@ import { WorkspaceCardInformation } from "../cards/workspaceCardInformation";
 import { WorkspaceDetailsForm } from "../forms/workspaceDetailsForm";
 import { useUser } from "@/hooks/stores/use-user";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type Props = {
     finishOnboarding: () => Promise<void>;
@@ -27,8 +28,9 @@ export const WorkspaceInformation: React.FC<Props> = observer((props) => {
         control,
         setValue,
         watch,
-        formState: { errors, isSubmitting },
+        formState,
     } = useForm<z.infer<typeof WorkspaceDetailSchema>>({
+        resolver: zodResolver(WorkspaceDetailSchema),
         defaultValues: {
             logo: "",
             cep: "",
@@ -41,14 +43,10 @@ export const WorkspaceInformation: React.FC<Props> = observer((props) => {
             email: "",
             phone: "",
         },
-        mode: "onChange",
+        mode: "onChange",       // Valida o formulário conforme o usuário digita
+        reValidateMode: "onChange",  // Revalida os campos conforme eles são alterados
+        criteriaMode: "all" // Para coletar todas as mensagens de erro de validação
     });
-
-    
-    const handleNextStep = async () => {
-        if (!currentUser) return;
-        await stepChange({ workspace_join: true, workspace_create: true, workspace_information: true });
-    };
 
     return (
         <div className="flex w-full">
@@ -80,8 +78,7 @@ export const WorkspaceInformation: React.FC<Props> = observer((props) => {
                         control={control}
                         handleSubmit={handleSubmit}
                         setValue={setValue}
-                        errors={errors}
-                        isSubmitting={isSubmitting}
+                        formState={formState}
                     />
                 </div>
             </div>

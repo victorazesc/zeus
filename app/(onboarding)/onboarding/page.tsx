@@ -67,21 +67,19 @@ const OnboardingPage: NextPageWithLayout = observer(() => {
             .then(() => {
                 router.push("/");
             })
-
-
     }
 
     const { } = useUserAuth({ routeAuth: "onboarding", user, isLoading: currentUserLoader });
     useEffect(() => {
         const handleStepChange = async () => {
             if (!user) return;
-            // const onboardingStep = user.onboardingStep as any
-            const onboardingStep = {
-                "profile_complete": true,
-                "workspace_create": true,
-                "workspace_join": true,
-                "workspace_information": false
-            }
+            const onboardingStep = user.onboardingStep as any
+            // const onboardingStep = {
+            //     "profile_complete": true,
+            //     "workspace_create": true,
+            //     "workspace_join": true,
+            //     "workspace_information": false
+            // }
 
             // if (
             //     !onboardingStep.workspace_join &&
@@ -161,7 +159,7 @@ const OnboardingPage: NextPageWithLayout = observer(() => {
                         )}
                     </div>
                 </>) : (
-                    <div className="grid fixed bg-white top-0 left-0 right-0 h-screen place-items-center">
+                    <div className="grid fixed bg-custom-background-100 top-0 left-0 right-0 h-screen place-items-center">
                         <Spinner />
                     </div>
                 )}

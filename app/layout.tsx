@@ -20,7 +20,7 @@ export default function RootLayout({
             <body>
                 <TooltipProvider>
                     <StoreProvider>
-                        <ThemeProvider defaultTheme="light">
+                        <ThemeProvider defaultTheme="dark">
                             <AppProvider>{children}</AppProvider>
                         </ThemeProvider>
                     </StoreProvider>

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Control, Controller, FieldErrors, UseFormHandleSubmit, UseFormSetValue } from "react-hook-form";
 import { RESTRICTED_URLS } from "@/constants/workspace";
-import { normalizeAccents } from "@/helpers/common.helper";
+import { formatDocument, normalizeAccents } from "@/helpers/common.helper";
 import { WorkspaceCreateSchema } from "@/lib/validations/workspace";
 import { WorkspaceService } from "@/services/workspace.service";
 import { TOnboardingSteps } from "@/types/user";
@@ -23,13 +23,14 @@ type Props = {
     errors: FieldErrors<z.infer<typeof WorkspaceCreateSchema>>;
     setValue: UseFormSetValue<z.infer<typeof WorkspaceCreateSchema>>;
     isSubmitting: boolean;
+    isValid: boolean;
 };
 
 // services
 const workspaceService = new WorkspaceService();
 
 export const WorkspaceForm: React.FC<Props> = (props) => {
-    const { stepChange, user, control, handleSubmit, setValue, errors, isSubmitting } = props;
+    const { stepChange, user, control, handleSubmit, setValue, errors, isSubmitting, isValid } = props;
     const [slugError, setSlugError] = useState(false);
     const [invalidSlug, setInvalidSlug] = useState(false);
 
@@ -49,7 +50,7 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                     await createWorkspace(formData)
                         .then(async (res: IWorkspace) => {
                             updateCurrentUser({
-                                
+
                             })
                             toast.success("Sucesso!", {
                                 description: "Espaço de Trabalho criado com sucesso.",
@@ -148,10 +149,11 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                                         id="document"
                                         name="document"
                                         type="text"
-                                        value={value}
+                                        value={formatDocument(value)} // Aplica a máscara de CPF ou CNPJ
                                         onChange={(event) => {
-                                            onChange(event.target.value);
-                                            setValue("document", event.target.value.toLocaleLowerCase().trim().replace(/ /g, "-"));
+                                            const formattedValue = formatDocument(event.target.value); // Aplica a máscara no onChange
+                                            onChange(formattedValue); // Atualiza o valor com a máscara aplicada
+                                            setValue("document", formattedValue);
                                         }}
                                         placeholder="CNPJ/CPF"
                                         ref={ref}
@@ -215,7 +217,9 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                     <span className="text-sm text-red-500">{`O URL só pode conter ( - ), ( _ ) e caracteres alfanuméricos.`}</span>
                 )}
             </div>
-            <Button className="text-white" type="submit" loading={isSubmitting}>Próximo</Button>
+            <Button type='submit' loading={isSubmitting} disabled={isSubmitting || !isValid} className='border-custom-primary-100 text-white'>
+                Próximo
+            </Button>
         </form>
     );
 };

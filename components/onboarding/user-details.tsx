@@ -15,6 +15,7 @@ import { OnboardingSidebar } from "./onboarding-sidebar";
 import { OnboardingStepIndicator } from "./step-indicator";
 import { useUser } from "@/hooks/stores/use-user";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type Props = {
   user?: User;
@@ -49,12 +50,15 @@ export const UserDetails: React.FC<Props> = observer((props) => {
     watch,
     formState: { errors, isSubmitting, isValid },
   } = useForm<z.infer<typeof CreateUser>>({
+    resolver: zodResolver(CreateUser), // Integrando o esquema Zod com react-hook-form
     defaultValues: {
       name: user?.name ?? "",
       avatar: user?.avatar ?? "",
       useCase: user?.useCase ?? ""
     },
-    mode: "onChange",
+    mode: "onChange",       // Valida o formulário conforme o usuário digita
+    reValidateMode: "onChange",  // Revalida os campos conforme eles são alterados
+    criteriaMode: "all" // Para coletar todas as mensagens de erro de validação
   });
 
   const onSubmit = async (formData: z.infer<typeof CreateUser>) => {
@@ -203,8 +207,8 @@ export const UserDetails: React.FC<Props> = observer((props) => {
               />
             </div>
 
-            <Button type="submit" className="text-white" disabled={!isValid} loading={isSubmitting}>
-              Continuar
+            <Button type='submit' loading={isSubmitting} disabled={isSubmitting || !isValid} className='border-custom-primary-100 text-white'>
+                Próximo
             </Button>
           </form>
         </div>
