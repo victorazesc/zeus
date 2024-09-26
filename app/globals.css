@@ -97,7 +97,7 @@
     /* primary bg */
     --color-background-90: hsla(222.2 47.4% 11.2%);
     /* secondary bg */
-    --color-background-80: rgba(245, 245, 245);
+    --color-background-80: hsla(217.2 32.6% 17.5%);
 
     --color-background-70: rgba(240, 240, 240);
 
