@@ -11,6 +11,14 @@ import { DataTable } from "@/components/shared/data-tables";
 import { columns } from "@/components/customer/columns";
 import { EmptyStateType } from "@/constants/empty-state";
 
+type Customer = {
+  id?: number;
+  client: string;
+  document: string;
+  email: string;
+  phone: string;
+};
+
 const WorkspacePage: NextPageWithLayout = observer(() => {
   const { currentWorkspace } = useWorkspace();
   const [searchValue, setSearchValue] = useState(""); // Estado para a busca
@@ -18,7 +26,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   // derived values
   const pageTitle = currentWorkspace?.name ? `${currentWorkspace?.name} - Dashboard` : undefined;
 
-  const data = [
+  const data: Customer[] = [
     {
       id: Math.random(),
       client: "Jane Doe",
@@ -89,8 +97,13 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
     <>
       <PageHead title={pageTitle} />
       <ClientsHeader searchValue={searchValue} setSearchValue={setSearchValue} />
-      <DataTable columns={columns} data={data} searchValue={searchValue} dataTableType={EmptyStateType.CUSTOMER}/>
-    </>
+      <DataTable
+        columns={columns}
+        data={data}
+        searchValue={searchValue}
+        searchFields={["client", "document", "email", "phone"]} // Campos para filtrar
+        dataTableType={EmptyStateType.CUSTOMER}
+      />    </>
   );
 });
 

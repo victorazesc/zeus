@@ -12,46 +12,52 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { EmptyState } from "../empty-state";
 import { EmptyStateType } from "@/constants/empty-state";
 
-interface DataTableProps<TData, TValue> {
-    columns: ColumnDef<TData, TValue>[];
-    data: TData[];
-    searchValue: string; // Recebendo o valor da busca
-    dataTableType: EmptyStateType
+interface DataTableProps<TValue> {
+    columns: ColumnDef<any, TValue>[];
+    data: any[];
+    searchValue: string;
+    searchFields?: (keyof any)[];
+    dataTableType: EmptyStateType;
 }
 
-// Função que remove caracteres especiais, espaços e normaliza para busca
+// Função para remover caracteres especiais e espaços
 const removeSpecialCharacters = (str: string) => {
     return str
-        .normalize("NFD") // Decompõe os caracteres acentuados
-        .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-        .replace(/[^\w\s]/gi, "") // Remove caracteres especiais como pontos, hífens, etc.
-        .replace(/\s+/g, "") // Remove todos os espaços
-        .toLowerCase(); // Converte para minúsculas
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\w\s]/gi, "")
+        .replace(/\s+/g, "")
+        .toLowerCase();
 };
 
-export function DataTable<TData, TValue>({
+export function DataTable<TValue>({
     columns,
     data,
-    searchValue, // Usando o valor da busca
-    dataTableType
-}: DataTableProps<any, TValue>) {
+    searchValue,
+    searchFields = [],
+    dataTableType,
+}: DataTableProps<TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
 
+    // Filtrando dinamicamente com base nos campos fornecidos
     const filteredData = React.useMemo(() => {
-        const normalizedSearch = removeSpecialCharacters(searchValue); // Normaliza o valor de busca
-
-        // Filtrar os dados com base no valor de busca em múltiplos campos
+        const normalizedSearch = removeSpecialCharacters(searchValue);
         return data.filter((item) => {
-            // Concatenando os valores que queremos buscar
-            const valuesToSearch = `${item.client} ${item.document} ${item.email} ${item.phone}`;
+            // Se não foram especificados campos, retorna todos os itens
+            if (!searchFields.length) return true;
 
-            // Normalizando os valores e removendo caracteres especiais e espaços
+            // Concatenando os campos especificados para busca
+            const valuesToSearch = searchFields
+                .map((field) => (item[field] ? String(item[field]) : ""))
+                .join(" ");
+
+            // Retorna true se os valores contêm o texto de busca
             return removeSpecialCharacters(valuesToSearch).includes(normalizedSearch);
         });
-    }, [data, searchValue]);
+    }, [data, searchValue, searchFields]);
 
     const table = useReactTable({
-        data: filteredData, // Usar os dados filtrados aqui
+        data: filteredData, // Usar os dados filtrados
         columns,
         onSortingChange: setSorting,
         getCoreRowModel: getCoreRowModel(),
@@ -69,28 +75,20 @@ export function DataTable<TData, TValue>({
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    );
-                                })}
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(header.column.columnDef.header, header.getContext())}
+                                    </TableHead>
+                                ))}
                             </TableRow>
                         ))}
                     </TableHeader>
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                >
+                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
