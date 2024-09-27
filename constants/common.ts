@@ -38,10 +38,10 @@ export const SIDEBAR_MENU_ITEMS: {
             Icon: BriefcaseBusiness,
         },
         {
-            key: "orders",
-            label: "Ordens",
-            href: `/orders`,
-            highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/orders`,
+            key: "proposals",
+            label: "Propostas",
+            href: `/proposals`,
+            highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/proposals`,
             Icon: NotebookPen,
         },
         {
