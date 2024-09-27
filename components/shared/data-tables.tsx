@@ -12,11 +12,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { EmptyState } from "../empty-state";
 import { EmptyStateType } from "@/constants/empty-state";
 
-interface DataTableProps<TValue> {
-    columns: ColumnDef<any, TValue>[];
-    data: any[];
-    searchValue: string;
-    searchFields?: (keyof any)[];
+interface DataTableProps<TData, TValue> {
+    columns: ColumnDef<TData, TValue>[];
+    data: TData[];
+    searchValue: string; // Recebe o valor de busca
+    searchFields?: (keyof TData)[]; // Campos para filtrar dinamicamente
     dataTableType: EmptyStateType;
 }
 
@@ -30,13 +30,13 @@ const removeSpecialCharacters = (str: string) => {
         .toLowerCase();
 };
 
-export function DataTable<TValue>({
+export function DataTable<TData, TValue>({
     columns,
     data,
     searchValue,
     searchFields = [],
     dataTableType,
-}: DataTableProps<TValue>) {
+}: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
 
     // Filtrando dinamicamente com base nos campos fornecidos

@@ -26,6 +26,7 @@ export interface EmptyStateDetails {
 export enum EmptyStateType {
   CUSTOMER = "customer",
   PRODUCT = "product",
+  SERVICE = "service",
 }
 
 const emptyStateDetails = {
@@ -50,6 +51,18 @@ const emptyStateDetails = {
     path: "/empty-state/empty-product",
     primaryButton: {
       text: "Adicionar um novo produto",
+    },
+
+    accessType: "workspace",
+  },
+  [EmptyStateType.SERVICE]: {
+    key: EmptyStateType.SERVICE,
+    title: "Nenhum serviço foi encontrado",
+    description:
+      "você não possui nenhum serviço em sua base de dados, Adicione para começar a criar projetos.",
+    path: "/empty-state/empty-service",
+    primaryButton: {
+      text: "Adicionar um novo serviço",
     },
 
     accessType: "workspace",
