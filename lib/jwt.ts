@@ -14,7 +14,7 @@ export function getTokens(payload: JwtPayload, options: SignOption = DEFAULT_SIG
   const secretKey = process.env.ACCESS_TOKEN_SECRET;
   const refreshSecretKey = process.env.REFRESH_TOKEN_SECRET;
 
-  const accessToken = jwt.sign(payload, secretKey!, { expiresIn: '30m' });
+  const accessToken = jwt.sign(payload, secretKey!, { expiresIn: '1d' });
   const refreshToken = jwt.sign(payload, refreshSecretKey!, { expiresIn: '1d' });
 
   return {

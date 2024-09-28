@@ -18,7 +18,27 @@ export enum Status {
 }
 
 
+export const statusColorsMap = (color: string) => {
+    switch (color) {
+        case "green":
+            return "text-green-400"
+        case "red":
+            return "text-red-400"
+        case "yellow":
+            return "text-yellow-400"
+        case "blue":
+            return "text-blue-400"
+        case "purple":
+            return "text-purple-400"
+        case "gray":
+            return "text-gray-400"
+        case "pink":
+            return "text-pink-400"
 
+        default:
+            break;
+    }
+}
 
 
 const proposalStatus = {

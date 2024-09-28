@@ -90,14 +90,6 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
     },
   ];
 
-  // OPEN = "open",
-  // SERVICE_ORDER = "service-order",
-  // BUDGET = "budget",
-  // IN_PROGRESS = "in-progress",
-  // INVOICED = "invoiced",
-  // CANCELLED = "canceled",
-  // FINISHED = "finished",
-
 
   return (
     <>
