@@ -13,7 +13,7 @@ export function AddServiceDialog() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button size="sm" className="items-center gap-1">
+                <Button size="sm" className="items-center gap-1 text-slate-50">
                     <Plus size={16} />
                     <span className="hidden sm:inline-block">Adicionar</span> Serviço
                 </Button>

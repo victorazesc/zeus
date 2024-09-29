@@ -16,6 +16,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { AddServiceDialog } from "../service/add/dialog";
 
 // Simulando alguns serviços como exemplo.
 const services = [
@@ -99,10 +100,10 @@ export function ServiceMultiSelect({
                     <Command>
                         <CommandInput placeholder="Buscar serviço..." />
                         <CommandList>
-                            <CommandEmpty>Nenhum serviço encontrado.</CommandEmpty>
+                            <CommandEmpty><AddServiceDialog/></CommandEmpty>
                             <CommandGroup>
                                 {services.map((service) => (
-                                    <CommandItem key={service.value} value={service.value} onSelect={() => toggleServiceSelection(service.value)}>
+                                    <CommandItem key={service.value} value={service.label} onSelect={() => toggleServiceSelection(service.value)}>
                                         <Check
                                             className={`mr-2 h-4 w-4 ${selectedServices.some((selected) => selected.value === service.value) ? "opacity-100" : "opacity-0"
                                                 }`}

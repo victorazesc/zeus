@@ -16,6 +16,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { AddProductDialog } from "../product/add/dialog";
 
 // Simulando alguns produtos como exemplo.
 const products = [
@@ -99,10 +100,10 @@ export function ProductMultiSelect({
                     <Command>
                         <CommandInput placeholder="Buscar produto..." />
                         <CommandList>
-                            <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
+                            <CommandEmpty><AddProductDialog /></CommandEmpty>
                             <CommandGroup>
                                 {products.map((product) => (
-                                    <CommandItem key={product.value} value={product.value} onSelect={() => toggleProductSelection(product.value)}>
+                                    <CommandItem key={product.value} value={product.label} onSelect={() => toggleProductSelection(product.value)}>
                                         <Check
                                             className={`mr-2 h-4 w-4 ${
                                                 selectedProducts.some((selected) => selected.value === product.value) ? "opacity-100" : "opacity-0"

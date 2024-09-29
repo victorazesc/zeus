@@ -43,7 +43,7 @@ export function StatusPicker() {
 
     return (
         <div className="flex items-center space-x-4">
-            <Popover open={open} onOpenChange={setOpen}>
+            <Popover open={open} onOpenChange={setOpen} >
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
@@ -60,7 +60,7 @@ export function StatusPicker() {
                         )}
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="p-0" side="right" align="start">
+                <PopoverContent className="p-0" side="bottom" align="center">
                     <Command>
                         <CommandInput placeholder="Change status..." />
                         <CommandList>
