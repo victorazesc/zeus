@@ -25,9 +25,9 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { PROPOSAL_STATUS, statusColorsMap } from "@/constants/proposal-status"
+import { PROPOSAL_STATUS, Status, statusColorsMap } from "@/constants/proposal-status"
 
-type Status = {
+type StatusInput = {
     key: string
     label: string
     color: string
@@ -35,10 +35,10 @@ type Status = {
 }
 
 
-export function StatusPicker() {
+export function StatusPicker({ value }: { value?: Status }) {
     const [open, setOpen] = React.useState(false)
-    const [selectedStatus, setSelectedStatus] = React.useState<Status | null>(
-        PROPOSAL_STATUS['open']
+    const [selectedStatus, setSelectedStatus] = React.useState<StatusInput | null>(
+        value ? PROPOSAL_STATUS[value] : PROPOSAL_STATUS['open']
     )
 
     return (

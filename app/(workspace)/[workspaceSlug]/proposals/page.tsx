@@ -1,7 +1,6 @@
 "use client"
 
 import { PageHead } from "@/components/core/page-title";
-import { useWorkspace } from "@/hooks/stores/use-workspace";
 import { observer } from "mobx-react";
 import { ReactElement, useState } from "react";
 import { NextPageWithLayout } from "@/types/types";
@@ -10,98 +9,72 @@ import { EmptyStateType } from "@/constants/empty-state";
 import { columns, Proposal } from "@/components/proposal/columns";
 import { ProposalsHeader } from "@/components/headers/workspace-proposal";
 import { Status } from "@/constants/proposal-status";
+import { UpdateProposalDialog } from "@/components/proposal/update/dialog";
 
 const WorkspacePage: NextPageWithLayout = observer(() => {
-  const { currentWorkspace } = useWorkspace();
-  const [searchValue, setSearchValue] = useState(""); // Estado para a busca
+  const [searchValue, setSearchValue] = useState("");
+  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
 
   // derived values
-  const pageTitle = currentWorkspace?.name ? `${currentWorkspace?.name} - Dashboard` : undefined;
   const data: Proposal[] = [
     {
       id: Math.random(),
-      customer: 'Jane Doe',
-      user: "Victor Azevedo",
+      customer: {
+        id: Math.random(),
+        name: "John Doe",
+        email: "victorazesc@gmail.com",
+        username: "victorazesc",
+        avatar:
+          "",
+      },
+      user: {
+        id: 14,
+        name: "Victor Henrique de Azevedo",
+        email: "victorazesc@gmail.com",
+        username: "victorazesc",
+        avatar:
+          "https://plane-ns-saks.s3.amazonaws.com/user-7e779a686a0c4b57b0bd2029f54d597f-6291E04A-E9D9-463E-AAEB-4E917166F658.jpeg",
+      },
+      description: 'Descrição da proposta',
+      technicalReport: 'Laudo Tecnico da proposta da proposta',
+      discount: 100,
       status: Status.OPEN,
-      initialDate: "Jan 07/2024",
-      finalDate: "Jan 23/2024",
-      value: 'R$ 25.000,00',
-      earn: 'R$ 10.000,00'
-    },
-    {
-      id: Math.random(),
-      customer: 'Jane Doe',
-      user: "Victor Azevedo",
-      status:Status.SERVICE_ORDER,
-      initialDate: "Jan 07/2024",
-      finalDate: "Jan 23/2024",
-      value: 'R$ 25.000,00',
-      earn: 'R$ 10.000,00'
-    },
-    {
-      id: Math.random(),
-      customer: 'Jane Doe',
-      user: "Victor Azevedo",
-      status: Status.BUDGET,
-      initialDate: "Jan 07/2024",
-      finalDate: "Jan 23/2024",
-      value: 'R$ 25.000,00',
-      earn: 'R$ 10.000,00'
-    },
-    {
-      id: Math.random(),
-      customer: 'Jane Doe',
-      user: "Victor Azevedo",
-      status: Status.IN_PROGRESS,
-      initialDate: "Jan 07/2024",
-      finalDate: "Jan 23/2024",
-      value: 'R$ 25.000,00',
-      earn: 'R$ 10.000,00'
-    },
-    {
-      id: Math.random(),
-      customer: 'Jane Doe',
-      user: "Victor Azevedo",
-      status: Status.INVOICED,
-      initialDate: "Jan 07/2024",
-      finalDate: "Jan 23/2024",
-      value: 'R$ 25.000,00',
-      earn: 'R$ 10.000,00'
-    },
-    {
-      id: Math.random(),
-      customer: 'Jane Doe',
-      user: "Victor Azevedo",
-      status: Status.CANCELLED,
-      initialDate: "Jan 07/2024",
-      finalDate: "Jan 23/2024",
-      value: 'R$ 25.000,00',
-      earn: 'R$ 10.000,00'
-    },
-    {
-      id: Math.random(),
-      customer: 'Jane Doe',
-      user: "Victor Azevedo",
-      status: Status.FINISHED,
-      initialDate: "Jan 07/2024",
-      finalDate: "Jan 23/2024",
-      value: 'R$ 25.000,00',
-      earn: 'R$ 10.000,00'
+      initialDate: new Date('2024-09-28'),
+      finalDate: new Date('2024-10-10'),
+      value: 25000,
+      earn: 10000
     },
   ];
 
 
   return (
     <>
-      <PageHead title={pageTitle} />
+      <PageHead title="Propostas" />
       <ProposalsHeader searchValue={searchValue} setSearchValue={setSearchValue} />
       <DataTable
         columns={columns}
         data={data}
         searchValue={searchValue}
-        searchFields={["customer", "user", "status"]} // Campos para filtrar
+        searchFields={["customer", "user", "status"]}
         dataTableType={EmptyStateType.SERVICE}
+        rowProps={(row) => ({
+          className: "cursor-pointer hover:bg-gray-900",
+          onClick: () => {
+            setSelectedProposal(row.original);
+            setIsModalOpen(true);
+          },
+        })}
       />
+
+      {selectedProposal && (
+        <UpdateProposalDialog
+          proposal={selectedProposal}
+          isOpen={isModalOpen}
+          onOpenChange={setIsModalOpen}
+        />
+      )}
     </>
   );
 });

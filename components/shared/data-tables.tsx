@@ -7,6 +7,7 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
+    Row,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { EmptyState } from "../empty-state";
@@ -18,6 +19,7 @@ interface DataTableProps<TData, TValue> {
     searchValue: string; // Recebe o valor de busca
     searchFields?: (keyof TData)[]; // Campos para filtrar dinamicamente
     dataTableType: EmptyStateType;
+    rowProps?: (row: Row<TData>) => React.HTMLAttributes<HTMLTableRowElement>; // Adicionando rowProps para personalizar as linhas
 }
 
 // Função para remover caracteres especiais e espaços
@@ -36,6 +38,7 @@ export function DataTable<TData, TValue>({
     searchValue,
     searchFields = [],
     dataTableType,
+    rowProps, // Recebendo rowProps como prop
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -88,7 +91,11 @@ export function DataTable<TData, TValue>({
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                                <TableRow
+                                    key={row.id}
+                                    data-state={row.getIsSelected() && "selected"}
+                                    {...(rowProps ? rowProps(row) : {})} // Aplicando as propriedades personalizadas na linha
+                                >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}

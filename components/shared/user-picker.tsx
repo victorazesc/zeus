@@ -1,12 +1,9 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import {
-    LucideIcon,
-} from "lucide-react"
-
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import * as React from "react";
+import { LucideIcon, User2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
     Command,
     CommandEmpty,
@@ -14,89 +11,75 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from "@/components/ui/command"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
-import { PROPOSAL_STATUS, statusColorsMap } from "@/constants/proposal-status"
-import { User } from "@prisma/client"
-import Image from "next/image"
-import { Avatar } from "../ui/avatar"
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { User } from "@prisma/client";
+import Image from "next/image";
+import { Avatar } from "../ui/avatar";
+import { useUser } from "@/hooks/stores/use-user";
+import { Label } from "@/components/ui/label"; // Importando o componente de Label
 
-type Status = {
-    key: string
-    label: string
-    color: string
-    icon: LucideIcon
+interface UserPickerProps {
+    users: Partial<User>[]; // Lista de usuários a serem exibidos no picker
+    value?: Partial<User>; // Lista de usuários a serem exibidos no picker
+    label?: string; // Texto da label
 }
 
-
-export function UserPicker({ users }: { users: Partial<User>[] }) {
-    const [open, setOpen] = React.useState(false)
+// Componente UserPicker atualizado
+export function UserPicker({ users, label, value }: UserPickerProps) {
+    const [open, setOpen] = React.useState(false);
+    const { currentUser } = useUser();
     const [selectedUser, setSelectedUser] = React.useState<Partial<User> | null>(
-        users[1]
-    )
+        value ?? (users.find((user) => user.id === currentUser?.id) || null)
+    );
 
     return (
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col space-y-1">
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="justify-start"
-                    >
+                    <Button variant="outline" size="sm" className="justify-start w-full">
                         {selectedUser ? (
                             <div className="flex gap-2 items-center">
-                                <div>
-                                    <Avatar
-                                        name={selectedUser?.email}
-                                        src={selectedUser?.avatar ?? ""}
-                                        size={24}
-                                        shape="circle"
-                                        fallbackBackgroundColor="#FCBE1D"
-                                        className="!text-base capitalize"
-                                    />
-                                </div>
-                                <p>
-                                    {selectedUser.name}
-                                </p>
+                                {/* Avatar e nome do usuário selecionado */}
+                                <Avatar
+                                    name={selectedUser?.email}
+                                    src={selectedUser?.avatar ?? ""}
+                                    size={24}
+                                    shape="circle"
+                                    fallbackBackgroundColor="#FCBE1D"
+                                    className="!text-base capitalize"
+                                />
+                                <p>{selectedUser.name}</p>
                             </div>
                         ) : (
-                            <>+ Set status</>
+                            <span className="flex gap-2"><User2 size={16} />{label}</span>
                         )}
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="p-0" side="bottom" align="center">
+                <PopoverContent className="p-0 w-[250px]" side="bottom" align="center">
                     <Command>
-                        <CommandInput placeholder="Change status..." />
+                        <CommandInput placeholder="Buscar usuário..." />
                         <CommandList>
-                            <CommandEmpty>No results found.</CommandEmpty>
+                            <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
                             <CommandGroup>
                                 {users.map((user) => (
                                     <CommandItem
                                         key={user.id}
                                         value={String(user.name)}
-                                        onSelect={(value) => {
-                                            setSelectedUser(
-                                                user
-                                            )
-                                            setOpen(false)
+                                        onSelect={() => {
+                                            setSelectedUser(user);
+                                            setOpen(false);
                                         }}
                                     >
                                         <div className="flex gap-2 items-center">
-                                            <div>
-                                                <Avatar
-                                                    name={user?.email}
-                                                    src={user?.avatar ?? ""}
-                                                    size={24}
-                                                    shape="circle"
-                                                    fallbackBackgroundColor="#FCBE1D"
-                                                    className="!text-base capitalize"
-                                                />
-                                            </div>
+                                            <Avatar
+                                                name={user?.email}
+                                                src={user?.avatar ?? ""}
+                                                size={24}
+                                                shape="circle"
+                                                fallbackBackgroundColor="#FCBE1D"
+                                                className="!text-base capitalize"
+                                            />
                                             <span>{user.name}</span>
                                         </div>
                                     </CommandItem>
@@ -107,5 +90,5 @@ export function UserPicker({ users }: { users: Partial<User>[] }) {
                 </PopoverContent>
             </Popover>
         </div>
-    )
+    );
 }

@@ -47,7 +47,7 @@ export function DatePicker({ label = "Selecione a data", value, onChange }: Date
                 >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {/* Formatação de data em português com `date-fns` */}
-                    {internalDate ? format(internalDate, "PPP", { locale: ptBR }) : <span>{label}</span>}
+                    {internalDate ? format(internalDate, "dd MMM yyyy", { locale: ptBR }) : <span>{label}</span>}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 z-[9999]">
