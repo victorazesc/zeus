@@ -1,6 +1,6 @@
 "use client"
 
-import { PROPOSAL_STATUS, Status, statusColorsMap } from "@/constants/proposal-status"
+import { PROPOSAL_STATUS, Status } from "@/constants/proposal-status"
 import { cn } from "@/lib/utils"
 import { ColumnDef } from "@tanstack/react-table"
 
@@ -36,7 +36,15 @@ export const columns: ColumnDef<Proposal>[] = [
       return statusDetails ? (
         <div className="flex items-center gap-2">
           <statusDetails.icon
-            className={cn("w-4 h-4", statusColorsMap(statusDetails.color))}
+            className={cn("w-4 h-4", {
+              "text-green-400": statusDetails.color === "green",
+              "text-red-400": statusDetails.color === "red",
+              "text-yellow-400": statusDetails.color === "yellow",
+              "text-blue-400": statusDetails.color === "blue",
+              "text-purple-400": statusDetails.color === "purple",
+              "text-gray-400": statusDetails.color === "gray",
+              "text-pink-400": statusDetails.color === "pink",
+            })}
           />
           <span>{statusDetails.label}</span>
         </div>
