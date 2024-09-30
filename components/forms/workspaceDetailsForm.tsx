@@ -7,7 +7,7 @@ import { z } from "zod";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
-import { formatCep } from "@/helpers/common.helper"; // Assumindo que já existe
+import { formatCep, formatPhone } from "@/helpers/common.helper"; // Assumindo que já existe
 import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
 import { useUser } from "@/hooks/stores/use-user";
@@ -25,13 +25,6 @@ type Props = {
 // services
 const workspaceService = new WorkspaceService();
 const userService = new UserService();
-
-// Função para formatar o telefone
-const formatPhone = (value: string) => {
-    const rawValue = value.replace(/\D/g, ""); // Remove tudo que não for número
-    const maskedValue = rawValue.replace(/^(\d{2})(\d{5})(\d)/, "($1) $2-$3");
-    return maskedValue;
-};
 
 export const WorkspaceDetailsForm: React.FC<Props> = (props) => {
     const { stepChange, user, control, handleSubmit, setValue, formState, watch } = props;

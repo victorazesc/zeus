@@ -142,3 +142,149 @@ export async function retrieveUserSettings(req: NextRequest): Promise<IUserSetti
     }
 
 }
+
+export async function getUsers(): Promise<Partial<User>[] | null> {
+    return [
+        {
+            id: 1,
+            name: "Lucas Silva",
+            email: "lucas.silva@example.com",
+            username: "lucas.silva",
+            avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+        },
+        {
+            id: 2,
+            name: "Ana Paula Mendes",
+            email: "ana.mendes@example.com",
+            username: "ana.mendes",
+            avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+        },
+        {
+            id: 3,
+            name: "Fernando Oliveira",
+            email: "fernando.oliveira@example.com",
+            username: "fernando.oliveira",
+            avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+        },
+        {
+            id: 4,
+            name: "Beatriz Souza",
+            email: "beatriz.souza@example.com",
+            username: "beatriz.souza",
+            avatar: "https://randomuser.me/api/portraits/women/4.jpg",
+        },
+        {
+            id: 5,
+            name: "Ricardo Lima",
+            email: "ricardo.lima@example.com",
+            username: "ricardo.lima",
+            avatar: "https://randomuser.me/api/portraits/men/5.jpg",
+        },
+        {
+            id: 6,
+            name: "Juliana Costa",
+            email: "juliana.costa@example.com",
+            username: "juliana.costa",
+            avatar: "https://randomuser.me/api/portraits/women/6.jpg",
+        },
+        {
+            id: 7,
+            name: "Carlos Almeida",
+            email: "carlos.almeida@example.com",
+            username: "carlos.almeida",
+            avatar: "https://randomuser.me/api/portraits/men/7.jpg",
+        },
+        {
+            id: 8,
+            name: "Mariana Freitas",
+            email: "mariana.freitas@example.com",
+            username: "mariana.freitas",
+            avatar: "https://randomuser.me/api/portraits/women/8.jpg",
+        },
+        {
+            id: 9,
+            name: "João Pereira",
+            email: "joao.pereira@example.com",
+            username: "joao.pereira",
+            avatar: "https://randomuser.me/api/portraits/men/9.jpg",
+        },
+        {
+            id: 10,
+            name: "Isabela Fernandes",
+            email: "isabela.fernandes@example.com",
+            username: "isabela.fernandes",
+            avatar: "https://randomuser.me/api/portraits/women/10.jpg",
+        },
+        {
+            id: 11,
+            name: "Thiago Moreira",
+            email: "thiago.moreira@example.com",
+            username: "thiago.moreira",
+            avatar: "https://randomuser.me/api/portraits/men/11.jpg",
+        },
+        {
+            id: 12,
+            name: "Larissa Duarte",
+            email: "larissa.duarte@example.com",
+            username: "larissa.duarte",
+            avatar: "https://randomuser.me/api/portraits/women/12.jpg",
+        },
+        {
+            id: 13,
+            name: "Rafael Barbosa",
+            email: "rafael.barbosa@example.com",
+            username: "rafael.barbosa",
+            avatar: "https://randomuser.me/api/portraits/men/13.jpg",
+        },
+        {
+            id: 14,
+            name: "Camila Rocha",
+            email: "camila.rocha@example.com",
+            username: "camila.rocha",
+            avatar: "https://randomuser.me/api/portraits/women/14.jpg",
+        },
+        {
+            id: 15,
+            name: "Eduardo Nogueira",
+            email: "eduardo.nogueira@example.com",
+            username: "eduardo.nogueira",
+            avatar: "https://randomuser.me/api/portraits/men/15.jpg",
+        },
+        {
+            id: 16,
+            name: "Patrícia Ribeiro",
+            email: "patricia.ribeiro@example.com",
+            username: "patricia.ribeiro",
+            avatar: "https://randomuser.me/api/portraits/women/16.jpg",
+        },
+        {
+            id: 17,
+            name: "André Matos",
+            email: "andre.matos@example.com",
+            username: "andre.matos",
+            avatar: "https://randomuser.me/api/portraits/men/17.jpg",
+        },
+        {
+            id: 18,
+            name: "Carolina Batista",
+            email: "carolina.batista@example.com",
+            username: "carolina.batista",
+            avatar: "https://randomuser.me/api/portraits/women/18.jpg",
+        },
+        {
+            id: 19,
+            name: "Felipe Teixeira",
+            email: "felipe.teixeira@example.com",
+            username: "felipe.teixeira",
+            avatar: "https://randomuser.me/api/portraits/men/19.jpg",
+        },
+        {
+            id: 20,
+            name: "Sofia Campos",
+            email: "sofia.campos@example.com",
+            username: "sofia.campos",
+            avatar: "https://randomuser.me/api/portraits/women/20.jpg",
+        },
+    ];
+}
+

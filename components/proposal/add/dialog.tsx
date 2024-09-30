@@ -14,19 +14,29 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
 import { ProductMultiSelect } from "../product-picker";
 import { ServiceMultiSelect } from "../service-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MonetaryInput } from "@/components/ui/input-monetary";
+import { CustomerService } from "@/services/customer.service";
+import { Customer } from "@/types/customer";
+import { User } from "@prisma/client";
+import { UserService } from "@/services/user.service";
+
+const customerService = new CustomerService();
+const userService = new UserService();
 
 export function AddProposalDialog() {
     const [addMore, setAddMore] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>();
     const [searchValue, setSearchValue] = useState<string>("");
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [users, setUsers] = useState<Partial<User>[]>([]);
     const [discount, setDiscount] = useState<number>(0.0); // Inicializar com 0 para evitar `undefined` ou `null`
+    const [isDialogOpen, setIsDialogOpen] = useState(false); // Controle de abertura do modal
 
     // Estado global para armazenar os produtos selecionados
     const [selectedProducts, setSelectedProducts] = useState<{ value: string; quantity: number }[]>([]);
@@ -56,47 +66,28 @@ export function AddProposalDialog() {
         setTotalPriceServices(total);
     };
 
-    const users = [
-        {
-            id: 14,
-            name: "Victor Henrique de Azevedo",
-            email: "victorazesc@gmail.com",
-            username: "victorazesc",
-            avatar:
-                "https://plane-ns-saks.s3.amazonaws.com/user-7e779a686a0c4b57b0bd2029f54d597f-6291E04A-E9D9-463E-AAEB-4E917166F658.jpeg",
-        },
-        {
-            id: 2,
-            name: "Ana Caroline Sardá Vargas",
-            email: "ana.sarda@gmail.com",
-            username: "ana.sarda",
-            avatar:
-                "https://plane-ns-saks.s3.amazonaws.com/user-e7aa445112af4acbb5e5d5d6f116c694-2AF23626-D947-4BDE-A3A7-4F84B5DB6552.jpeg",
-        },
-    ];
-
-    const customers = [
-        {
-            id: 1,
-            name: "Jane Doe",
-            email: "janedoe@gmail.com",
-            username: "janedoe",
-            avatar: "",
-        },
-        {
-            id: 2,
-            name: "John Doe",
-            email: "john.doe@gmail.com",
-            username: "john.doe",
-            avatar: "",
-        },
-    ];
-
     // Cálculo do valor total considerando os descontos
     const totalProposalValue = (totalPrice + totalPriceServices) - (discount || 0);
 
+    useEffect(() => {
+        const fetchCustomers = async () => {
+            if (isDialogOpen) {
+                const data = await customerService.getCustomers();
+                setCustomers(data);
+            }
+        };
+        const fetchUsers = async () => {
+            if (isDialogOpen) {
+                const data = await userService.getUsers();
+                setUsers(data);
+            }
+        };
+        fetchUsers();
+        fetchCustomers();
+    }, [isDialogOpen]);
+
     return (
-        <Dialog>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
                 <Button size="sm" className="items-center gap-1">
                     <Plus size={16} />
@@ -113,7 +104,7 @@ export function AddProposalDialog() {
                     <DatePicker label="Data Fim" />
                     <StatusPicker />
                     <UserPicker users={users} label="Selecione o Responsável" />
-                    <UserPicker users={customers} label="Selecione o Cliente" />
+                    <UserPicker users={customers || []} label="Selecione o Cliente" />
                 </div>
                 <div className="grid grid-cols-2 gap-4 py-4">
                     <div className="flex gap-2 flex-col">

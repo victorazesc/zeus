@@ -54,4 +54,15 @@ export class UserService extends APIService {
         throw error?.response?.data;
       });
   }
+
+  async getUsers(): Promise<User[]> {
+    return this.get("/api/users/")
+      .then((response) => {
+        return response?.data
+      }
+      )
+      .catch((error) => {
+        throw error?.response;
+      });
+  }
 }

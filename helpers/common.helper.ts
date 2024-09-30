@@ -23,7 +23,9 @@ export const formatCep = (value: string) => {
     return maskedValue;
 };
 
-export const formatDocument = (value: string) => {
+export const formatDocument = (value: string | null) => {
+    if (!value) return ""
+
     const onlyNumbers = value.replace(/\D/g, ""); // Remove tudo que não é número
 
     if (onlyNumbers.length <= 11) {
@@ -40,6 +42,14 @@ export const formatDocument = (value: string) => {
             .replace(/\.(\d{3})(\d)/, ".$1/$2")
             .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
     }
+
+};
+
+export const formatPhone = (value: string | null) => {
+    if (!value) return ""
+    const rawValue = value.replace(/\D/g, ""); // Remove tudo que não for número
+    const maskedValue = rawValue.replace(/^(\d{2})(\d{5})(\d)/, "($1) $2-$3");
+    return maskedValue;
 };
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ? process.env.NEXT_PUBLIC_API_BASE_URL : "";
