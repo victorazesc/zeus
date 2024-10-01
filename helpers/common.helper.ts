@@ -52,4 +52,11 @@ export const formatPhone = (value: string | null) => {
     return maskedValue;
 };
 
+export const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+    }).format(value);
+};
+
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ? process.env.NEXT_PUBLIC_API_BASE_URL : "";

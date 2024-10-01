@@ -30,7 +30,6 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   const fetchCustomers = async () => {
     const data = await customerService.getCustomers();
     setCustomers(data);
-    console.log('dates')
   };
 
   useEffect(() => {
