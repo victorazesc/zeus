@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { LucideIcon, User2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
     Command,
@@ -17,16 +16,17 @@ import { User } from "@prisma/client";
 import Image from "next/image";
 import { Avatar } from "../ui/avatar";
 import { useUser } from "@/hooks/stores/use-user";
-import { Label } from "@/components/ui/label"; // Importando o componente de Label
+import { Label } from "@/components/ui/label";
 
 interface UserPickerProps {
     users: Partial<User>[]; // Lista de usuários a serem exibidos no picker
-    value?: Partial<User>; // Lista de usuários a serem exibidos no picker
+    value?: Partial<User>; // Usuário selecionado inicialmente
     label?: string; // Texto da label
+    onChange?: (user: Partial<User>) => void; // Função de callback quando o usuário for selecionado
 }
 
-// Componente UserPicker atualizado
-export function UserPicker({ users, label, value }: UserPickerProps) {
+// Componente UserPicker atualizado com onChange
+export function UserPicker({ users, label, value, onChange }: UserPickerProps) {
     const [open, setOpen] = React.useState(false);
     const { currentUser } = useUser();
     const [selectedUser, setSelectedUser] = React.useState<Partial<User> | null>(
@@ -52,7 +52,10 @@ export function UserPicker({ users, label, value }: UserPickerProps) {
                                 <p>{selectedUser.name}</p>
                             </div>
                         ) : (
-                            <span className="flex gap-2"><User2 size={16} />{label}</span>
+                            <span className="flex gap-2">
+                                <User2 size={16} />
+                                {label}
+                            </span>
                         )}
                     </Button>
                 </PopoverTrigger>
@@ -67,8 +70,12 @@ export function UserPicker({ users, label, value }: UserPickerProps) {
                                         key={user.id}
                                         value={String(user.name)}
                                         onSelect={() => {
-                                            setSelectedUser(user);
-                                            setOpen(false);
+                                            setSelectedUser(user); // Atualiza o estado interno
+                                            setOpen(false); // Fecha o popover
+
+                                            if (onChange) {
+                                                onChange(user); // Chama o onChange com o usuário selecionado
+                                            }
                                         }}
                                     >
                                         <div className="flex gap-2 items-center">

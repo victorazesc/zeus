@@ -4,7 +4,6 @@ import {
     SortingState,
     flexRender,
     getCoreRowModel,
-    getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
     Row,
@@ -12,12 +11,13 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { EmptyState } from "../empty-state";
 import { EmptyStateType } from "@/constants/empty-state";
+import { PROPOSAL_STATUS, Status } from "@/constants/proposal-status";
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
     searchValue: string; // Recebe o valor de busca
-    searchFields?: (keyof TData)[]; // Campos para filtrar dinamicamente
+    searchFields?: (keyof TData | string)[]; // Campos para filtrar dinamicamente (permitindo campos aninhados como "customer.name")
     dataTableType: EmptyStateType;
     rowProps?: (row: Row<TData>) => React.HTMLAttributes<HTMLTableRowElement>; // Adicionando rowProps para personalizar as linhas
 }
@@ -30,6 +30,11 @@ const removeSpecialCharacters = (str: string) => {
         .replace(/[^\w\s]/gi, "")
         .replace(/\s+/g, "")
         .toLowerCase();
+};
+
+// Função para obter valor de campos aninhados como "customer.name" ou "user.name"
+const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((value, key) => (value && value[key] ? value[key] : ""), obj);
 };
 
 export function DataTable<TData, TValue>({
@@ -45,17 +50,25 @@ export function DataTable<TData, TValue>({
     // Filtrando dinamicamente com base nos campos fornecidos
     const filteredData = React.useMemo(() => {
         const normalizedSearch = removeSpecialCharacters(searchValue);
+
         return data.filter((item) => {
             // Se não foram especificados campos, retorna todos os itens
             if (!searchFields.length) return true;
 
-            // Concatenando os campos especificados para busca
-            const valuesToSearch = searchFields
-                .map((field) => (item[field] ? String(item[field]) : ""))
-                .join(" ");
+            return searchFields.some((field) => {
+                let fieldValue = "";
 
-            // Retorna true se os valores contêm o texto de busca
-            return removeSpecialCharacters(valuesToSearch).includes(normalizedSearch);
+                // Verifica se o campo é especificamente o status para usar a tradução
+                if (field === "status") {
+                    const statusKey = (item as any)["status"] as Status; // Acessa o campo "status" de forma segura
+                    fieldValue = PROPOSAL_STATUS[statusKey]?.label || "";
+                } else {
+                    // Para outros campos, incluindo campos aninhados como "customer.name" e "user.name"
+                    fieldValue = getNestedValue(item, field as string) || "";
+                }
+
+                return removeSpecialCharacters(String(fieldValue)).includes(normalizedSearch);
+            });
         });
     }, [data, searchValue, searchFields]);
 
@@ -64,7 +77,6 @@ export function DataTable<TData, TValue>({
         columns,
         onSortingChange: setSorting,
         getCoreRowModel: getCoreRowModel(),
-        // getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         state: {
             sorting,

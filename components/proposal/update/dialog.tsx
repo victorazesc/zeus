@@ -1,3 +1,5 @@
+"use client";
+
 import { DatePicker } from "@/components/shared/date-picker";
 import { StatusPicker } from "@/components/shared/status-picker";
 import { UserPicker } from "@/components/shared/user-picker";
@@ -10,46 +12,43 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
 import { ProductMultiSelect } from "../product-picker";
 import { ServiceMultiSelect } from "../service-picker";
 import { Label } from "@/components/ui/label";
 import { MonetaryInput } from "@/components/ui/input-monetary";
-import { Proposal } from "../columns";
 
 interface Props {
-  proposal: Proposal;
+  proposal: Partial<Proposal>;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void; // Função para controlar a abertura e fechamento
 }
 
 export function UpdateProposalDialog({ proposal, isOpen, onOpenChange }: Props) {
-  const [discount, setDiscount] = useState<number>(0.0); // Inicializar com 0 para evitar `undefined` ou `null`
-  const [selectedProducts, setSelectedProducts] = useState<{ value: string; quantity: number }[]>([]);
-  const [selectedServices, setSelectedServices] = useState<{ value: string; quantity: number }[]>([]);
-  const [totalPrice, setTotalPrice] = useState<number>(0.0);
-  const [totalPriceServices, setTotalPriceServices] = useState<number>(0.0);
+  const [discount, setDiscount] = useState<number>(proposal.discount || 0); // Inicializar com 0 para evitar `undefined` ou `null`
+  const [selectedProducts, setSelectedProducts] = useState<{ product: Partial<Product>; quantity: number }[]>(proposal.products || []);
+  const [selectedServices, setSelectedServices] = useState<{ service: Partial<Service>; quantity: number }[]>(proposal.services || []);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [totalPriceServices, setTotalPriceServices] = useState<number>(0);
 
-  // Funções para atualizar produtos e serviços
-  const handleProductsChange = (products: { value: string; quantity: number }[]) => {
-    setSelectedProducts(products);
-  };
+  // Atualiza os preços totais conforme os produtos e serviços são modificados
+  useEffect(() => {
+    const productsTotal = selectedProducts.reduce((sum, item) => {
+      return sum + (item.product.sell_price || 0) * item.quantity;
+    }, 0);
+    setTotalPrice(productsTotal);
+  }, [selectedProducts]);
 
-  const handleTotalPriceChange = (total: number) => {
-    setTotalPrice(total);
-  };
-
-  const handleServicesChange = (services: { value: string; quantity: number }[]) => {
-    setSelectedServices(services);
-  };
-
-  const handleTotalServicePriceChange = (total: number) => {
-    setTotalPriceServices(total);
-  };
+  useEffect(() => {
+    const servicesTotal = selectedServices.reduce((sum, item) => {
+      return sum + (item.service.price || 0) * item.quantity;
+    }, 0);
+    setTotalPriceServices(servicesTotal);
+  }, [selectedServices]);
 
   // Cálculo do valor total considerando os descontos
-  const totalProposalValue = totalPrice + totalPriceServices - (discount || 0);
+  const totalProposalValue = totalPrice + totalPriceServices - discount;
 
   const users = [
     {
@@ -85,6 +84,7 @@ export function UpdateProposalDialog({ proposal, isOpen, onOpenChange }: Props) 
       avatar: "",
     },
   ];
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[1200px]">
@@ -108,14 +108,13 @@ export function UpdateProposalDialog({ proposal, isOpen, onOpenChange }: Props) 
             </div>
             <div className="col-span-2 flex items-center gap-4">
               <Label>Desconto:</Label>
-              <MonetaryInput value={proposal.discount} onValueChange={(e) => setDiscount(Number(e) || 0)} />
+              <MonetaryInput value={discount} onValueChange={(e) => setDiscount(Number(e) || 0)} />
             </div>
-            <div className="col-span-2 flex items-center gap-4">
-              <p>Valor total da proposta: R$ {proposal.value.toFixed(2)}</p>
+            <div className="col-span-2 flex flex-col items-start gap-2">
+              <p><strong>Valor total da proposta: R$ {totalProposalValue.toFixed(2)}</strong></p>
             </div>
           </div>
           <div>
-            {/* Linha 3: Tabela de produtos e serviços */}
             <Tabs defaultValue="products" className="w-full">
               <TabsList className="bg-custom-background-90 p-1 flex gap-4 justify-evenly rounded-lg mb-2">
                 <TabsTrigger className="w-full p-1 rounded-md" value="products">
@@ -127,22 +126,21 @@ export function UpdateProposalDialog({ proposal, isOpen, onOpenChange }: Props) 
               </TabsList>
               <TabsContent value="products">
                 <ProductMultiSelect
-                  onProductsChange={handleProductsChange}
-                  onTotalPriceChange={handleTotalPriceChange}
+                  onProductsChange={setSelectedProducts}
+                  onTotalPriceChange={setTotalPrice}
                   parentSelectedProducts={selectedProducts}
                 />
               </TabsContent>
               <TabsContent value="services">
                 <ServiceMultiSelect
-                  onServicesChange={handleServicesChange}
-                  onTotalPriceChange={handleTotalServicePriceChange}
+                  onServicesChange={setSelectedServices}
+                  onTotalPriceChange={setTotalPriceServices}
                   parentSelectedServices={selectedServices}
                 />
               </TabsContent>
             </Tabs>
           </div>
         </div>
-
         <DialogFooter className="justify-between">
           <Button type="button" variant="outline" size={"sm"} onClick={() => onOpenChange(false)}>
             Cancelar

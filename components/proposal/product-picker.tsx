@@ -16,25 +16,23 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { AddProductDialog } from "../product/add/dialog";
+import { ProductService } from "@/services/product.service";
 
-// Simulando alguns produtos como exemplo.
-const products = [
-    { value: "product-1", label: "Câmera de Segurança Bullet", quantity: 2, price: 130.0 },
-    { value: "product-2", label: "Câmera Dome", quantity: 3, price: 150.0 },
-    { value: "product-3", label: "Sensor de Movimento", quantity: 1, price: 90.0 },
-    { value: "product-4", label: "Cabo Coaxial 10m", quantity: 5, price: 30.0 },
-    { value: "product-5", label: "Gravador DVR Intelbras", quantity: 2, price: 350.0 },
-    { value: "product-6", label: "Conector BNC", quantity: 10, price: 5.0 },
-    { value: "product-7", label: "Fonte de Alimentação 12V", quantity: 3, price: 50.0 },
-    { value: "product-8", label: "Suporte de Câmera", quantity: 5, price: 20.0 },
-];
+
+interface Product {
+    id: number;
+    value: string;
+    label: string;
+    price: number;
+}
 
 interface ProductMultiSelectProps {
-    onProductsChange: (products: { value: string; quantity: number }[]) => void;
+    onProductsChange: (products: { product: Partial<Product>; quantity: number }[]) => void;
     onTotalPriceChange: (total: number) => void;
-    parentSelectedProducts: { value: string; quantity: number }[];
+    parentSelectedProducts: { product: Partial<Product>; quantity: number }[];
 }
+
+const productService = new ProductService()
 
 export function ProductMultiSelect({
     onProductsChange,
@@ -42,7 +40,28 @@ export function ProductMultiSelect({
     parentSelectedProducts,
 }: ProductMultiSelectProps) {
     const [open, setOpen] = React.useState(false);
-    const [selectedProducts, setSelectedProducts] = React.useState<{ value: string; quantity: number }[]>(parentSelectedProducts);
+    const [products, setProducts] = React.useState<Product[]>([]); // Estado para armazenar os produtos
+    const [selectedProducts, setSelectedProducts] = React.useState<{ product: Partial<Product>; quantity: number }[]>(parentSelectedProducts);
+
+    // Buscar produtos quando o componente for montado
+    React.useEffect(() => {
+        async function fetchProducts() {
+            try {
+                const response = await productService.getProducts(); // Chama o serviceProduct para obter produtos
+                const formattedProducts = response.map((product: any) => ({
+                    id: product.id,
+                    value: product.id.toString(), // Valor único para seleção
+                    label: product.description, // Descrição para exibição
+                    price: product.sell_price, // Preço para cálculos
+                }));
+                setProducts(formattedProducts);
+            } catch (error) {
+                console.error("Erro ao buscar produtos:", error);
+            }
+        }
+
+        fetchProducts();
+    }, []);
 
     // Atualizar o localStorage e informar o componente pai ao alterar os produtos
     React.useEffect(() => {
@@ -52,12 +71,12 @@ export function ProductMultiSelect({
 
     // Detalhes dos produtos selecionados
     const selectedProductDetails = products.filter((product) =>
-        selectedProducts.some((selected) => selected.value === product.value)
+        selectedProducts?.some((selected) => selected.product.id === product.id)
     );
 
     // Calcula o total dos produtos selecionados
     const totalPrice = selectedProductDetails.reduce((acc, product) => {
-        const selectedProduct = selectedProducts.find((item) => item.value === product.value);
+        const selectedProduct = selectedProducts.find((item) => item.product.value === product.value);
         return acc + product.price * (selectedProduct?.quantity || 1);
     }, 0);
 
@@ -67,24 +86,24 @@ export function ProductMultiSelect({
     }, [totalPrice, onTotalPriceChange]);
 
     // Função para adicionar ou remover um produto selecionado
-    const toggleProductSelection = (productValue: string) => {
+    const toggleProductSelection = (productValue: number) => {
         setSelectedProducts((prev) =>
-            prev.find((item) => item.value === productValue)
-                ? prev.filter((item) => item.value !== productValue) // Remove se já estiver selecionado
-                : [...prev, { value: productValue, quantity: 1 }] // Adiciona com quantidade inicial 1 se não estiver
+            prev?.find((item) => item.product.id === productValue)
+                ? prev.filter((item) => item.product.id !== productValue) // Remove se já estiver selecionado
+                : [...prev, { product: products.find((p) => p.id === productValue)!, quantity: 1 }] // Adiciona com quantidade inicial 1 se não estiver
         );
     };
 
     // Atualiza a quantidade de um produto selecionado
-    const updateProductQuantity = (productValue: string, quantity: number) => {
+    const updateProductQuantity = (productValue: number, quantity: number) => {
         setSelectedProducts((prev) =>
-            prev.map((item) => (item.value === productValue ? { ...item, quantity } : item))
+            prev.map((item) => (item.product.id === productValue ? { ...item, quantity } : item))
         );
     };
 
     // Remove um produto específico da lista
-    const removeProduct = (productValue: string) => {
-        setSelectedProducts((prev) => prev.filter((item) => item.value !== productValue));
+    const removeProduct = (productValue: number) => {
+        setSelectedProducts((prev) => prev.filter((item) => item.product.id !== productValue));
     };
 
     return (
@@ -92,7 +111,7 @@ export function ProductMultiSelect({
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between rounded-b-none">
-                        {selectedProducts.length > 0 ? `${selectedProducts.length} produto(s) selecionado(s)` : "Selecione os produtos..."}
+                        {selectedProducts?.length > 0 ? `${selectedProducts?.length} produto(s) selecionado(s)` : "Selecione os produtos..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
@@ -100,14 +119,13 @@ export function ProductMultiSelect({
                     <Command>
                         <CommandInput placeholder="Buscar produto..." />
                         <CommandList>
-                            <CommandEmpty><AddProductDialog /></CommandEmpty>
+                            <CommandEmpty>Nenhum produto encontrado</CommandEmpty>
                             <CommandGroup>
                                 {products.map((product) => (
-                                    <CommandItem key={product.value} value={product.label} onSelect={() => toggleProductSelection(product.value)}>
+                                    <CommandItem key={product.value} value={product.label} onSelect={() => toggleProductSelection(product.id)}>
                                         <Check
-                                            className={`mr-2 h-4 w-4 ${
-                                                selectedProducts.some((selected) => selected.value === product.value) ? "opacity-100" : "opacity-0"
-                                            }`}
+                                            className={`mr-2 h-4 w-4 ${selectedProducts?.some((selected) => selected.product.id === product.id) ? "opacity-100" : "opacity-0"
+                                                }`}
                                         />
                                         {product.label}
                                     </CommandItem>
@@ -119,7 +137,7 @@ export function ProductMultiSelect({
             </Popover>
 
             {/* Exibição dos produtos selecionados em formato de tabela */}
-            {selectedProducts.length > 0 ? (
+            {selectedProducts?.length > 0 ? (
                 <div className="border border-t-0 rounded shadow-sm -mt-1" style={{ height: "300px", display: "flex", flexDirection: "column" }}>
                     <div style={{ flexGrow: 1, overflowY: "auto" }}>
                         <table className="min-w-full text-sm">
@@ -132,8 +150,8 @@ export function ProductMultiSelect({
                                 </tr>
                             </thead>
                             <tbody>
-                                {selectedProductDetails.map((product) => {
-                                    const selectedProduct = selectedProducts.find((item) => item.value === product.value);
+                                {selectedProductDetails.map((product: Product) => {
+                                    const selectedProduct = selectedProducts.find((item) => item.product.id === product.id);
                                     return (
                                         <tr key={product.value} className="border-b">
                                             <td className="py-2 px-4">
@@ -141,14 +159,14 @@ export function ProductMultiSelect({
                                                     type="number"
                                                     min={1}
                                                     value={selectedProduct?.quantity ?? 1}
-                                                    onChange={(e) => updateProductQuantity(product.value, parseInt(e.target.value, 10) || 1)}
+                                                    onChange={(e) => updateProductQuantity(product.id, parseInt(e.target.value, 10) || 1)}
                                                     className="w-16 border rounded px-1 text-center bg-custom-background-100"
                                                 />
                                             </td>
                                             <td className="py-2 px-4">{product.label}</td>
                                             <td className="py-2 px-4">R$ {(product.price * (selectedProduct?.quantity || 1)).toFixed(2)}</td>
                                             <td className="py-2 px-4 text-center">
-                                                <button onClick={() => removeProduct(product.value)}>
+                                                <button onClick={() => removeProduct(product.id)}>
                                                     <X className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700" />
                                                 </button>
                                             </td>

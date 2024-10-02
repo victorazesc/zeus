@@ -7,24 +7,9 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Avatar } from "../ui/avatar"
 import { ptBR } from "date-fns/locale"
 import { format } from "date-fns"
+import { formatCurrency } from "@/helpers/common.helper"
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Proposal = {
-  id: number
-  customer: Partial<User>
-  user: Partial<User>
-  status: Status
-  initialDate: Date
-  finalDate: Date
-  description: string
-  technicalReport: string
-  value: number
-  earn: number
-  discount: number
-}
-
-export const columns: ColumnDef<Proposal>[] = [
+export const columns: ColumnDef<Partial<Proposal>>[] = [
   {
     accessorKey: "customer",
     header: "Cliente",
@@ -121,10 +106,12 @@ export const columns: ColumnDef<Proposal>[] = [
   {
     accessorKey: "value",
     header: "Valor da Proposta",
+    cell: ({ row }) => formatCurrency(row.original.value || 0),
   },
   {
     accessorKey: "earn",
     header: "Lucro",
+    cell: ({ row }) => formatCurrency(row.original.earn || 0),
   },
 ]
 

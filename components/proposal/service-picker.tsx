@@ -16,25 +16,22 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { AddServiceDialog } from "../service/add/dialog";
+import { ServiceService } from "@/services/service.service"; // Importe o serviço correto
 
-// Simulando alguns serviços como exemplo.
-const services = [
-    { value: "service-1", label: "Instalação de Câmeras", quantity: 1, price: 300.0 },
-    { value: "service-2", label: "Manutenção de Equipamentos", quantity: 1, price: 150.0 },
-    { value: "service-3", label: "Monitoramento Mensal", quantity: 1, price: 100.0 },
-    { value: "service-4", label: "Consultoria de Segurança", quantity: 1, price: 500.0 },
-    { value: "service-5", label: "Serviço de Cablagem", quantity: 1, price: 200.0 },
-    { value: "service-6", label: "Configuração de Equipamentos", quantity: 1, price: 250.0 },
-    { value: "service-7", label: "Treinamento de Funcionários", quantity: 1, price: 180.0 },
-    { value: "service-8", label: "Auditoria de Segurança", quantity: 1, price: 600.0 },
-];
+interface Service {
+    id: number;
+    value: string;
+    label: string;
+    price: number;
+}
 
 interface ServiceMultiSelectProps {
-    onServicesChange: (services: { value: string; quantity: number }[]) => void;
+    onServicesChange: (services: { service: Partial<Service>; quantity: number }[]) => void;
     onTotalPriceChange: (total: number) => void;
-    parentSelectedServices: { value: string; quantity: number }[];
+    parentSelectedServices: { service: Partial<Service>; quantity: number }[];
 }
+
+const serviceService = new ServiceService();
 
 export function ServiceMultiSelect({
     onServicesChange,
@@ -42,7 +39,28 @@ export function ServiceMultiSelect({
     parentSelectedServices,
 }: ServiceMultiSelectProps) {
     const [open, setOpen] = React.useState(false);
-    const [selectedServices, setSelectedServices] = React.useState<{ value: string; quantity: number }[]>(parentSelectedServices);
+    const [services, setServices] = React.useState<Service[]>([]); // Estado para armazenar os serviços
+    const [selectedServices, setSelectedServices] = React.useState<{ service: Partial<Service>; quantity: number }[]>(parentSelectedServices);
+
+    // Buscar serviços quando o componente for montado
+    React.useEffect(() => {
+        async function fetchServices() {
+            try {
+                const response = await serviceService.getServices(); // Chama o ServiceService para obter serviços
+                const formattedServices = response.map((service: any) => ({
+                    id: service.id,
+                    value: service.id.toString(), // Valor único para seleção
+                    label: service.name, // Nome do serviço para exibição
+                    price: service.price, // Preço para cálculos
+                }));
+                setServices(formattedServices);
+            } catch (error) {
+                console.error("Erro ao buscar serviços:", error);
+            }
+        }
+
+        fetchServices();
+    }, []);
 
     // Atualizar o localStorage e informar o componente pai ao alterar os serviços
     React.useEffect(() => {
@@ -52,12 +70,12 @@ export function ServiceMultiSelect({
 
     // Detalhes dos serviços selecionados
     const selectedServiceDetails = services.filter((service) =>
-        selectedServices.some((selected) => selected.value === service.value)
+        selectedServices.some((selected) => selected.service.id === service.id)
     );
 
     // Calcula o total dos serviços selecionados
     const totalPrice = selectedServiceDetails.reduce((acc, service) => {
-        const selectedService = selectedServices.find((item) => item.value === service.value);
+        const selectedService = selectedServices.find((item) => item.service.value === service.value);
         return acc + service.price * (selectedService?.quantity || 1);
     }, 0);
 
@@ -67,24 +85,24 @@ export function ServiceMultiSelect({
     }, [totalPrice, onTotalPriceChange]);
 
     // Função para adicionar ou remover um serviço selecionado
-    const toggleServiceSelection = (serviceValue: string) => {
+    const toggleServiceSelection = (serviceValue: number) => {
         setSelectedServices((prev) =>
-            prev.find((item) => item.value === serviceValue)
-                ? prev.filter((item) => item.value !== serviceValue) // Remove se já estiver selecionado
-                : [...prev, { value: serviceValue, quantity: 1 }] // Adiciona com quantidade inicial 1 se não estiver
+            prev.find((item) => item.service.id === serviceValue)
+                ? prev.filter((item) => item.service.id !== serviceValue) // Remove se já estiver selecionado
+                : [...prev, { service: services.find((s) => s.id === serviceValue)!, quantity: 1 }] // Adiciona com quantidade inicial 1 se não estiver
         );
     };
 
     // Atualiza a quantidade de um serviço selecionado
-    const updateServiceQuantity = (serviceValue: string, quantity: number) => {
+    const updateServiceQuantity = (serviceValue: number, quantity: number) => {
         setSelectedServices((prev) =>
-            prev.map((item) => (item.value === serviceValue ? { ...item, quantity } : item))
+            prev.map((item) => (item.service.id === serviceValue ? { ...item, quantity } : item))
         );
     };
 
     // Remove um serviço específico da lista
-    const removeService = (serviceValue: string) => {
-        setSelectedServices((prev) => prev.filter((item) => item.value !== serviceValue));
+    const removeService = (serviceValue: number) => {
+        setSelectedServices((prev) => prev.filter((item) => item.service.id !== serviceValue));
     };
 
     return (
@@ -100,12 +118,12 @@ export function ServiceMultiSelect({
                     <Command>
                         <CommandInput placeholder="Buscar serviço..." />
                         <CommandList>
-                            <CommandEmpty><AddServiceDialog/></CommandEmpty>
+                            <CommandEmpty>Nenhum serviço encontrado</CommandEmpty>
                             <CommandGroup>
                                 {services.map((service) => (
-                                    <CommandItem key={service.value} value={service.label} onSelect={() => toggleServiceSelection(service.value)}>
+                                    <CommandItem key={service.value} value={service.label} onSelect={() => toggleServiceSelection(service.id)}>
                                         <Check
-                                            className={`mr-2 h-4 w-4 ${selectedServices.some((selected) => selected.value === service.value) ? "opacity-100" : "opacity-0"
+                                            className={`mr-2 h-4 w-4 ${selectedServices.some((selected) => selected.service.id === service.id) ? "opacity-100" : "opacity-0"
                                                 }`}
                                         />
                                         {service.label}
@@ -131,8 +149,8 @@ export function ServiceMultiSelect({
                                 </tr>
                             </thead>
                             <tbody>
-                                {selectedServiceDetails.map((service) => {
-                                    const selectedService = selectedServices.find((item) => item.value === service.value);
+                                {selectedServiceDetails.map((service: Service) => {
+                                    const selectedService = selectedServices.find((item) => item.service.id === service.id);
                                     return (
                                         <tr key={service.value} className="border-b">
                                             <td className="py-2 px-4">
@@ -140,14 +158,14 @@ export function ServiceMultiSelect({
                                                     type="number"
                                                     min={1}
                                                     value={selectedService?.quantity ?? 1}
-                                                    onChange={(e) => updateServiceQuantity(service.value, parseInt(e.target.value, 10) || 1)}
+                                                    onChange={(e) => updateServiceQuantity(service.id, parseInt(e.target.value, 10) || 1)}
                                                     className="w-16 border rounded px-1 text-center bg-custom-background-100"
                                                 />
                                             </td>
                                             <td className="py-2 px-4">{service.label}</td>
                                             <td className="py-2 px-4">R$ {(service.price * (selectedService?.quantity || 1)).toFixed(2)}</td>
                                             <td className="py-2 px-4 text-center">
-                                                <button onClick={() => removeService(service.value)}>
+                                                <button onClick={() => removeService(service.id)}>
                                                     <X className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700" />
                                                 </button>
                                             </td>

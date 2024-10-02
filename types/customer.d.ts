@@ -1,4 +1,4 @@
-export type Customer = {
+interface Customer {
     id: number;
     name: string | null;
     document: string | null;
