@@ -1,5 +1,3 @@
-import { Customer } from "@/types/customer";
-
 const customersMock: Partial<Customer>[] = [
     {
         id: 1,
@@ -92,5 +90,13 @@ export async function getCustomers(): Promise<Partial<Customer>[] | null> {
 }
 export async function createCustomer(data: Partial<Customer>): Promise<Partial<Customer> | null> {
     customersMock.unshift({ ...data, id: customersMock.length + 1 })
+    return data
+}
+export async function updateCustomer(data: Partial<Customer>, customerId: number): Promise<Partial<Customer> | null> {
+    let customerIndex = customersMock.findIndex((customer) => customer.id === customerId);
+    if (customerIndex !== -1) {
+        customersMock[customerIndex] = { ...customersMock[customerIndex], ...data };
+        console.log(customersMock[customerIndex]); // Mostra o cliente atualizado
+    }
     return data
 }

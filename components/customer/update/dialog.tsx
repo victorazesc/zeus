@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
-    DialogClose,
     DialogContent,
     DialogFooter,
     DialogHeader,
@@ -11,43 +10,60 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Customer } from "@/types/customer";
 import { formatDocument, formatPhone, formatCep } from "@/helpers/common.helper";
 import { customerSchema } from "@/lib/validations/customer";
+import { CustomerService } from "@/services/customer.service";
+import { toast } from "sonner";
 
 type CustomerFormData = z.infer<typeof customerSchema>;
 
 interface Props {
     customer: Partial<Customer>;
     isOpen: boolean;
-    onOpenChange: (isOpen: boolean) => void; // Função para controlar a abertura e fechamento
+    onOpenChange: (isOpen: boolean) => void;
+    onCustomerUpdated: () => void;
 }
 
-export function UpdateCustomerDialog({ customer, isOpen, onOpenChange }: Props) {
-    // Configuração do formulário usando react-hook-form e zod para validação
-    const { register, handleSubmit, setValue, formState: { errors } } = useForm<CustomerFormData>({
+const customerService = new CustomerService();
+
+export function UpdateCustomerDialog({ customer, isOpen, onOpenChange, onCustomerUpdated }: Props) {
+    const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting, isValid } } = useForm<CustomerFormData>({
         resolver: zodResolver(customerSchema),
         defaultValues: {
             name: customer.name || "",
-            document: formatDocument(customer.document || "") || "",
-            phone: formatPhone(customer.phone || "") || "",
+            document: formatDocument(customer.document || ""),
+            phone: formatPhone(customer.phone || ""),
             email: customer.email || "",
-            cep: formatCep(customer.cep || "") || "",
+            cep: formatCep(customer.cep || ""),
             address: customer.address || "",
             number: customer.number || "",
             neighborhood: customer.neighborhood || "",
             city: customer.city || "",
             state: customer.state || "",
         },
-        mode: "onChange",       // Valida o formulário conforme o usuário digita
-        reValidateMode: "onChange",  // Revalida os campos conforme eles são alterados
-        criteriaMode: "all" // Para coletar todas as mensagens de erro de validação
+        mode: "onChange",
+        reValidateMode: "onChange",
+        criteriaMode: "all",
     });
 
-    // Função para manipular a submissão do formulário
-    const onSubmit = (data: CustomerFormData) => {
-        console.log("Dados Atualizados:", data);
-        onOpenChange(false); // Fechar o modal após a submissão
+    const onSubmit = async (data: CustomerFormData) => {
+        if (isSubmitting) return;
+        if (!customer.id) return;
+        await customerService.updateCustomer(data, customer.id)
+            .then(async () => {
+                toast.success("Cliente Atualizado com sucesso!");
+                reset();
+                if (onCustomerUpdated) {
+                    onCustomerUpdated();
+                }
+            })
+            .catch((error) =>
+                toast.error("Erro ao adicionar cliente", {
+                    description: error ?? "Houve um problema ao criar o cliente. Tente novamente.",
+                })
+            );
+
+        onOpenChange(false);
     };
 
     return (
@@ -58,7 +74,6 @@ export function UpdateCustomerDialog({ customer, isOpen, onOpenChange }: Props) 
                         <DialogTitle>Editar cliente</DialogTitle>
                     </DialogHeader>
                     <div className="grid grid-cols-1 gap-4 py-4">
-                        {/* Campos do Formulário */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Input
@@ -72,12 +87,9 @@ export function UpdateCustomerDialog({ customer, isOpen, onOpenChange }: Props) 
                                 <Input
                                     id="cpf-cnpj"
                                     placeholder="CPF/CNPJ*"
-                                    maxLength={18} // Limite de caracteres para CPF/CNPJ
-                                    {...register("document")}                  
-                                    onChange={(e) => {
-                                        const formattedValue = formatDocument(e.target.value);
-                                        setValue("document", formattedValue);
-                                    }}
+                                    maxLength={18}
+                                    {...register("document")}
+                                    onChange={(e) => setValue("document", formatDocument(e.target.value))}
                                 />
                                 {errors.document && <p className="text-red-600 text-sm">{errors.document.message}</p>}
                             </div>
@@ -87,16 +99,12 @@ export function UpdateCustomerDialog({ customer, isOpen, onOpenChange }: Props) 
                                 <Input
                                     id="celular"
                                     placeholder="Celular"
-                                    maxLength={15} // Limite de caracteres para celular
+                                    maxLength={15}
                                     {...register("phone")}
-                                    onChange={(e) => {
-                                        const formattedValue = formatPhone(e.target.value);
-                                        setValue("phone", formattedValue);
-                                    }}
+                                    onChange={(e) => setValue("phone", formatPhone(e.target.value))}
                                 />
                                 {errors.phone && <p className="text-red-600 text-sm">{errors.phone.message}</p>}
                             </div>
-                            <Input id="telefone" placeholder="Telefone" disabled />
                             <div>
                                 <Input id="email" placeholder="Email" {...register("email")} />
                                 {errors.email && <p className="text-red-600 text-sm">{errors.email.message}</p>}
@@ -106,12 +114,9 @@ export function UpdateCustomerDialog({ customer, isOpen, onOpenChange }: Props) 
                             <Input
                                 id="cep"
                                 placeholder="CEP"
-                                maxLength={9} // Limite de caracteres para CEP
+                                maxLength={9}
                                 {...register("cep")}
-                                onChange={(e) => {
-                                    const formattedValue = formatCep(e.target.value);
-                                    setValue("cep", formattedValue);
-                                }}
+                                onChange={(e) => setValue("cep", formatCep(e.target.value))}
                             />
                             <Input id="rua" placeholder="Logradouro" {...register("address")} />
                             <Input id="numero" placeholder="Número" {...register("number")} />
@@ -124,16 +129,12 @@ export function UpdateCustomerDialog({ customer, isOpen, onOpenChange }: Props) 
                     </div>
                     <DialogFooter>
                         <div className="mt-5 flex items-center justify-end gap-2 border-t border-custom-border-200 pt-5 w-full">
-                            <div className="flex items-center gap-2">
-                                <DialogClose asChild>
-                                    <Button type="button" variant="outline" size={"sm"}>
-                                        Cancelar
-                                    </Button>
-                                </DialogClose>
-                                <Button size="sm" type="submit" loading={false}>
-                                    Concluir
-                                </Button>
-                            </div>
+                            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+                                Cancelar
+                            </Button>
+                            <Button size="sm" onClick={handleSubmit(onSubmit)} disabled={isSubmitting || !isValid}>
+                                Concluir
+                            </Button>
                         </div>
                     </DialogFooter>
                 </DialogContent>

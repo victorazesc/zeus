@@ -1,5 +1,4 @@
 import { createCustomer, getCustomers } from "@/actions/customer.action"
-import { Customer } from "@/types/customer"
 import { NextRequest, NextResponse } from "next/server"
 export const dynamic = 'force-dynamic'
 

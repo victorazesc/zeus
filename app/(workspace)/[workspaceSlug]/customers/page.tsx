@@ -11,7 +11,6 @@ import { DataTable } from "@/components/shared/data-tables";
 import { columns } from "@/components/customer/columns";
 import { EmptyStateType } from "@/constants/empty-state";
 import { CustomerService } from "@/services/customer.service";
-import { Customer } from "@/types/customer";
 import { UpdateCustomerDialog } from "@/components/customer/update/dialog";
 
 const customerService = new CustomerService();
@@ -69,6 +68,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
           customer={selectedCustomer}
           isOpen={isModalOpen}
           onOpenChange={setIsModalOpen}
+          onCustomerUpdated={fetchCustomers}
         />
       )}
     </>
