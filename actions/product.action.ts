@@ -142,7 +142,6 @@ const productsMock: Partial<Product>[] = [
 ];
 
 export async function getProducts(): Promise<Partial<Product>[] | null> {
-  console.log(productsMock)
   return productsMock
 }
 export async function createProduct(data: Partial<Product>): Promise<Partial<Product> | null> {

@@ -1,17 +1,9 @@
 "use client"
 
+import { formatCurrency } from "@/helpers/common.helper"
 import { ColumnDef } from "@tanstack/react-table"
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Service = {
-  id: number
-  name: string
-  description: string
-  price: number
-}
-
-export const columns: ColumnDef<Service>[] = [
+export const columns: ColumnDef<Partial<Service>>[] = [
   {
     accessorKey: "name",
     header: "Nome",
@@ -23,5 +15,6 @@ export const columns: ColumnDef<Service>[] = [
   {
     accessorKey: "price",
     header: "Preço",
+    cell: ({ row }) => formatCurrency(row.original.price || 0),
   }
 ]   

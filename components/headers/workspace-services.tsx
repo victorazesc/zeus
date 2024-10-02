@@ -5,7 +5,7 @@ import { Breadcrumbs } from "../ui/breadcrumbs";
 import { cn } from "@/lib/utils";
 import { AddServiceDialog } from "../service/add/dialog";
 
-export const ServicesHeader = observer(({ searchValue, setSearchValue }:any) => {
+export const ServicesHeader = observer(({ searchValue, setSearchValue, onServiceAdded }:any) => {
   return (
     <div className="relative z-10 flex h-[3.75rem] w-full flex-shrink-0 flex-row items-center justify-between gap-x-2 gap-y-4 border-b border-custom-border-200 p-4">
       <div className="flex flex-grow items-center gap-2 overflow-ellipsis whitespace-nowrap">
@@ -41,7 +41,7 @@ export const ServicesHeader = observer(({ searchValue, setSearchValue }:any) => 
             onChange={(e) => setSearchValue(e.target.value)}
           />
         </div>
-        <AddServiceDialog/>
+        <AddServiceDialog onServiceAdded={onServiceAdded}/>
       </div>
     </div>
   );
