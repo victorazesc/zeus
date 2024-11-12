@@ -36,7 +36,7 @@ export class CustomerService extends APIService {
         return response?.data;
       })
       .catch((error) => {
-        throw error?.response;
+        throw error?.response.data;
       });
   }
 }

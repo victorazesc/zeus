@@ -156,12 +156,38 @@ export async function updateCustomer(
   data: Partial<Customer>,
   customerId: number
 ): Promise<Partial<Customer> | null> {
-  let customerIndex = customersMock.findIndex(
-    (customer) => customer.id === customerId
-  );
-  if (customerIndex !== -1) {
-    customersMock[customerIndex] = { ...customersMock[customerIndex], ...data };
-    console.log(customersMock[customerIndex]); // Mostra o cliente atualizado
+  try {
+    // Atualiza o cliente no banco de dados
+    const updatedCustomer = await prisma.customer.update({
+      where: { id: customerId },
+      data: {
+        name: data.name,
+        document: data.document ? clean(data.document) : undefined,
+        mobile: data.mobile ? clean(data.mobile) : undefined,
+        phone: data.phone,
+        email: data.email,
+        street: data.street,
+        number: data.number,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        state: data.state,
+        zipCode: data.zipCode ? clean(data.zipCode) : undefined,
+        contactPerson: data.contactPerson,
+        additionalInfo: data.additionalInfo,
+        gender: data.gender,
+      },
+    });
+
+    return updatedCustomer;
+  } catch (error: any) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      throw new Error("Cliente não encontrado.");
+    }
+
+    console.error(error);
+    throw new Error("Erro ao atualizar o cliente.");
   }
-  return data;
 }
