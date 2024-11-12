@@ -1,7 +1,7 @@
 // services
+import { Customer } from "@prisma/client";
 import { APIService } from "./api.service";
 import { API_BASE_URL } from "@/helpers/common.helper";
-
 
 export class CustomerService extends APIService {
   constructor() {
@@ -11,29 +11,30 @@ export class CustomerService extends APIService {
   async getCustomers(): Promise<Customer[]> {
     return this.get("/api/customers/")
       .then((response) => {
-        return response?.data
-      }
-      )
+        return response?.data;
+      })
       .catch((error) => {
         throw error?.response;
       });
   }
-  async createCustomer(data: Partial<Customer>): Promise<Customer> {
+  async createCustomer(data: Partial<Customer>) {
     return this.post("/api/customers/", data)
       .then((response) => {
-        return response?.data
-      }
-      )
+        console.log(response);
+        return response?.data;
+      })
       .catch((error) => {
-        throw error?.response;
+        throw error?.response.data;
       });
   }
-  async updateCustomer(data: Partial<Customer>, customerId: number): Promise<Customer> {
+  async updateCustomer(
+    data: Partial<Customer>,
+    customerId: number
+  ): Promise<Customer> {
     return this.put(`/api/customers/${customerId}`, data)
       .then((response) => {
-        return response?.data
-      }
-      )
+        return response?.data;
+      })
       .catch((error) => {
         throw error?.response;
       });

@@ -1,130 +1,161 @@
 import * as React from "react";
 import {
-    ColumnDef,
-    SortingState,
-    flexRender,
-    getCoreRowModel,
-    getSortedRowModel,
-    useReactTable,
-    Row,
+  ColumnDef,
+  SortingState,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  Row,
 } from "@tanstack/react-table";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 import { EmptyState } from "../empty-state";
 import { EmptyStateType } from "@/constants/empty-state";
 import { PROPOSAL_STATUS, Status } from "@/constants/proposal-status";
+import { Skeleton } from "../ui/skeleton";
 
 interface DataTableProps<TData, TValue> {
-    columns: ColumnDef<TData, TValue>[];
-    data: TData[];
-    searchValue: string; // Recebe o valor de busca
-    searchFields?: (keyof TData | string)[]; // Campos para filtrar dinamicamente (permitindo campos aninhados como "customer.name")
-    dataTableType: EmptyStateType;
-    rowProps?: (row: Row<TData>) => React.HTMLAttributes<HTMLTableRowElement>; // Adicionando rowProps para personalizar as linhas
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  searchValue: string;
+  searchFields?: (keyof TData | string)[];
+  dataTableType: EmptyStateType;
+  rowProps?: (row: Row<TData>) => React.HTMLAttributes<HTMLTableRowElement>;
+  isLoading?: boolean; // Nova prop para estado de carregamento
 }
 
-// Função para remover caracteres especiais e espaços
 const removeSpecialCharacters = (str: string) => {
-    return str
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^\w\s]/gi, "")
-        .replace(/\s+/g, "")
-        .toLowerCase();
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]/gi, "")
+    .replace(/\s+/g, "")
+    .toLowerCase();
 };
 
-// Função para obter valor de campos aninhados como "customer.name" ou "user.name"
 const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((value, key) => (value && value[key] ? value[key] : ""), obj);
+  return path
+    .split(".")
+    .reduce((value, key) => (value && value[key] ? value[key] : ""), obj);
 };
 
 export function DataTable<TData, TValue>({
-    columns,
-    data,
-    searchValue,
-    searchFields = [],
-    dataTableType,
-    rowProps, // Recebendo rowProps como prop
+  columns,
+  data,
+  searchValue,
+  searchFields = [],
+  dataTableType,
+  rowProps,
+  isLoading = false, // Prop padrão definida como falso
 }: DataTableProps<TData, TValue>) {
-    const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
 
-    // Filtrando dinamicamente com base nos campos fornecidos
-    const filteredData = React.useMemo(() => {
-        const normalizedSearch = removeSpecialCharacters(searchValue);
+  const filteredData = React.useMemo(() => {
+    const normalizedSearch = removeSpecialCharacters(searchValue);
 
-        return data.filter((item) => {
-            // Se não foram especificados campos, retorna todos os itens
-            if (!searchFields.length) return true;
+    return data.filter((item) => {
+      if (!searchFields.length) return true;
 
-            return searchFields.some((field) => {
-                let fieldValue = "";
+      return searchFields.some((field) => {
+        let fieldValue = "";
 
-                // Verifica se o campo é especificamente o status para usar a tradução
-                if (field === "status") {
-                    const statusKey = (item as any)["status"] as Status; // Acessa o campo "status" de forma segura
-                    fieldValue = PROPOSAL_STATUS[statusKey]?.label || "";
-                } else {
-                    // Para outros campos, incluindo campos aninhados como "customer.name" e "user.name"
-                    fieldValue = getNestedValue(item, field as string) || "";
-                }
+        if (field === "status") {
+          const statusKey = (item as any)["status"] as Status;
+          fieldValue = PROPOSAL_STATUS[statusKey]?.label || "";
+        } else {
+          fieldValue = getNestedValue(item, field as string) || "";
+        }
 
-                return removeSpecialCharacters(String(fieldValue)).includes(normalizedSearch);
-            });
-        });
-    }, [data, searchValue, searchFields]);
-
-    const table = useReactTable({
-        data: filteredData, // Usar os dados filtrados
-        columns,
-        onSortingChange: setSorting,
-        getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        state: {
-            sorting,
-        },
+        return removeSpecialCharacters(String(fieldValue)).includes(
+          normalizedSearch
+        );
+      });
     });
+  }, [data, searchValue, searchFields]);
 
-    return (
-        <div>
-            <div className="rounded-md">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(header.column.columnDef.header, header.getContext())}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                    {...(rowProps ? rowProps(row) : {})} // Aplicando as propriedades personalizadas na linha
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    <EmptyState type={dataTableType} size="sm" />
-                                </TableCell>
-                            </TableRow>
+  const table = useReactTable({
+    data: filteredData,
+    columns,
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+  });
+
+  return (
+    <div>
+      <div className="rounded-md">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
                         )}
-                    </TableBody>
-                </Table>
-            </div>
-        </div>
-    );
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {isLoading ? ( // Exibe o loading se estiver carregando
+              <>
+                {[...Array(10)].map((_, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {columns.map((column, colIndex) => (
+                      <TableCell key={colIndex}>
+                        <Skeleton className="h-6"></Skeleton>
+
+                        {/* Aqui você pode adicionar uma animação ou spinner */}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </>
+            ) : table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  {...(rowProps ? rowProps(row) : {})}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  <EmptyState type={dataTableType} size="sm" />
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
 }

@@ -19,7 +19,7 @@ import { CustomerService } from "@/services/customer.service";
 import { UserService } from "@/services/user.service";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { User } from "@prisma/client";
+import { Customer, User } from "@prisma/client";
 import { Status } from "@/constants/proposal-status";
 import { useUser } from "@/hooks/stores/use-user";
 import { ProposalService } from "@/services/proposal.service";

@@ -32,10 +32,10 @@ export const columns: ColumnDef<Partial<Customer>>[] = [
     header: "Email",
   },
   {
-    accessorKey: "phone",
+    accessorKey: "mobile",
     header: "Telefone",
     cell: ({ row }) => {
-      const phone = row.getValue<string>("phone")
+      const phone = row.getValue<string>("mobile")
       return phone ? (
         <div className="flex gap-2 items-center">
           <p>{formatPhone(phone)}</p>

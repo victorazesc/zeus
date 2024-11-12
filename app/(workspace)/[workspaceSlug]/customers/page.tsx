@@ -12,6 +12,7 @@ import { columns } from "@/components/customer/columns";
 import { EmptyStateType } from "@/constants/empty-state";
 import { CustomerService } from "@/services/customer.service";
 import { UpdateCustomerDialog } from "@/components/customer/update/dialog";
+import { Customer } from "@prisma/client";
 
 const customerService = new CustomerService();
 
@@ -21,14 +22,17 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   const [customers, setCustomers] = useState<Partial<Customer>[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Partial<Customer> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Novo estado para loading
 
   // Definindo o título da página
   const pageTitle = currentWorkspace?.name ? `${currentWorkspace?.name} - Dashboard` : undefined;
 
   // Busca inicial de clientes quando a página carrega
   const fetchCustomers = async () => {
+    setIsLoading(true); // Ativa o loading antes de buscar os dados
     const data = await customerService.getCustomers();
     setCustomers(data);
+    setIsLoading(false); // Desativa o loading após carregar os dados
   };
 
   useEffect(() => {
@@ -53,8 +57,9 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         columns={columns}
         data={customers}
         searchValue={searchValue}
-        searchFields={["name", "document", "email", "phone"]} // Campos para filtrar
+        searchFields={["name", "document", "email", "mobile"]} // Campos para filtrar
         dataTableType={EmptyStateType.CUSTOMER}
+        isLoading={isLoading} // Passa o estado de loading para o DataTable
         rowProps={(row) => ({
           className: "cursor-pointer hover:bg-gray-900",
           onClick: () => handleRowClick(row.original),
