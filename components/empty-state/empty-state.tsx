@@ -84,7 +84,7 @@ export const EmptyState: React.FC<EmptyStateProps> = (props) => {
         </Link>
       );
     } else {
-      return <Button>{primaryButton.text}</Button>;
+      return <Button onClick={primaryButtonOnClick}>{primaryButton.text}</Button>;
     }
   };
   // secondary button

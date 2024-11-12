@@ -36,13 +36,22 @@ type CustomerFormData = z.infer<typeof customerSchema>;
 const customerService = new CustomerService();
 
 interface AddCustomerDialogProps {
-  onCustomerAdded?: () => void; // Função para notificar o componente pai sobre a adição do cliente
+  onCustomerAdded?: () => void;
+  isOpen?: boolean;
+  setIsOpen?: (open: boolean) => void;
+  showTrigger?: boolean;
 }
-
-export function AddCustomerDialog({ onCustomerAdded }: AddCustomerDialogProps) {
+export function AddCustomerDialog({
+  onCustomerAdded,
+  isOpen: externalIsOpen,
+  setIsOpen: externalSetIsOpen,
+  showTrigger = true,
+}: AddCustomerDialogProps) {
   const [addMore, setAddMore] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const { currentWorkspace } = useWorkspace();
+
+  const isControlledExternally = typeof externalIsOpen !== "undefined";
 
   const initialMockData = {
     name: "",
@@ -71,9 +80,9 @@ export function AddCustomerDialog({ onCustomerAdded }: AddCustomerDialogProps) {
   } = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
     defaultValues: initialMockData,
-    mode: "onChange", // Valida o formulário conforme o usuário digita
-    reValidateMode: "onChange", // Revalida os campos conforme eles são alterados
-    criteriaMode: "all", // Para coletar todas as mensagens de erro de validação
+    mode: "onChange",
+    reValidateMode: "onChange",
+    criteriaMode: "all",
   });
 
   const fetchAddressByCep = async (cep: string) => {
@@ -91,10 +100,19 @@ export function AddCustomerDialog({ onCustomerAdded }: AddCustomerDialogProps) {
   };
 
   useEffect(() => {
-    if (isOpen) {
-      reset(initialMockData);
+    // Sincronizar o estado interno com o externo apenas se for controlado externamente
+    if (isControlledExternally) {
+      setInternalIsOpen(externalIsOpen || false);
     }
-  }, [isOpen, reset]);
+  }, [externalIsOpen, isControlledExternally]);
+
+  const handleOpenChange = (open: boolean) => {
+    // Atualiza o estado interno e chama o setIsOpen externo se estiver presente
+    setInternalIsOpen(open);
+    if (isControlledExternally && externalSetIsOpen) {
+      externalSetIsOpen(open);
+    }
+  };
 
   const handleCepChange = (e: any) => {
     const formattedCep = formatCep(e.target.value);
@@ -112,8 +130,9 @@ export function AddCustomerDialog({ onCustomerAdded }: AddCustomerDialogProps) {
         toast.success("Cliente adicionado com sucesso!");
         reset();
         if (onCustomerAdded) {
-          onCustomerAdded(); // Notifica o componente pai para atualizar a lista
+          onCustomerAdded();
         }
+        handleOpenChange(addMore); // Reabre o diálogo se `addMore` estiver ativo
       })
       .catch((error) => {
         toast.error("Erro ao adicionar cliente", {
@@ -122,20 +141,18 @@ export function AddCustomerDialog({ onCustomerAdded }: AddCustomerDialogProps) {
             "Houve um problema ao criar o cliente. Tente novamente.",
         });
       });
-
-    if (!addMore) {
-      setIsOpen(false); // Fecha o modal se "Adicionar mais" estiver desmarcado
-    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="items-center gap-1">
-          <Plus size={16} />
-          <span className="hidden sm:inline-block">Adicionar</span> Cliente
-        </Button>
-      </DialogTrigger>
+    <Dialog open={internalIsOpen} onOpenChange={handleOpenChange}>
+      {showTrigger && (
+        <DialogTrigger asChild>
+          <Button size="sm" className="items-center gap-1">
+            <Plus size={16} />
+            <span className="hidden sm:inline-block">Adicionar</span> Cliente
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[800px]">
         <form>
           <DialogHeader>
@@ -286,7 +303,7 @@ export function AddCustomerDialog({ onCustomerAdded }: AddCustomerDialogProps) {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setIsOpen(false)}
+                onClick={() => handleOpenChange(false)}
               >
                 Cancelar
               </Button>

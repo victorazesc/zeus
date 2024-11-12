@@ -13,6 +13,7 @@ import { EmptyStateType } from "@/constants/empty-state";
 import { CustomerService } from "@/services/customer.service";
 import { UpdateCustomerDialog } from "@/components/customer/update/dialog";
 import { Customer } from "@prisma/client";
+import { AddCustomerDialog } from "@/components/customer/add/dialog";
 
 const customerService = new CustomerService();
 
@@ -20,12 +21,16 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   const { currentWorkspace } = useWorkspace();
   const [searchValue, setSearchValue] = useState(""); // Estado para a busca
   const [customers, setCustomers] = useState<Partial<Customer>[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Partial<Customer> | null>(null);
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<Partial<Customer> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Novo estado para loading
 
   // Definindo o título da página
-  const pageTitle = currentWorkspace?.name ? `${currentWorkspace?.name} - Dashboard` : undefined;
+  const pageTitle = currentWorkspace?.name
+    ? `${currentWorkspace?.name} - Dashboard`
+    : undefined;
 
   // Busca inicial de clientes quando a página carrega
   const fetchCustomers = async () => {
@@ -64,6 +69,9 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
           className: "cursor-pointer hover:bg-gray-900",
           onClick: () => handleRowClick(row.original),
         })}
+        addAction={() => {
+          setIsAddModalOpen(true);
+        }}
       />
 
       {/* Utiliza a propriedade "key" para recriar o componente sempre que o cliente for alterado */}
@@ -76,6 +84,12 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
           onCustomerUpdated={fetchCustomers}
         />
       )}
+      <AddCustomerDialog
+        isOpen={isAddModalOpen}
+        setIsOpen={setIsAddModalOpen}
+        showTrigger={false} // Define como false se quiser controlar só pelo pai
+        onCustomerAdded={fetchCustomers}
+      />
     </>
   );
 });

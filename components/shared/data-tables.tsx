@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
   dataTableType: EmptyStateType;
   rowProps?: (row: Row<TData>) => React.HTMLAttributes<HTMLTableRowElement>;
   isLoading?: boolean; // Nova prop para estado de carregamento
+  addAction?: () => void;
 }
 
 const removeSpecialCharacters = (str: string) => {
@@ -53,6 +54,7 @@ export function DataTable<TData, TValue>({
   searchFields = [],
   dataTableType,
   rowProps,
+  addAction,
   isLoading = false, // Prop padrão definida como falso
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -119,8 +121,6 @@ export function DataTable<TData, TValue>({
                     {columns.map((column, colIndex) => (
                       <TableCell key={colIndex}>
                         <Skeleton className="h-6"></Skeleton>
-
-                        {/* Aqui você pode adicionar uma animação ou spinner */}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -149,7 +149,11 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  <EmptyState type={dataTableType} size="sm" />
+                  <EmptyState
+                    type={dataTableType}
+                    size="sm"
+                    primaryButtonOnClick={addAction}
+                  />
                 </TableCell>
               </TableRow>
             )}
