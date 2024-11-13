@@ -59,19 +59,13 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         onCustomerAdded={fetchCustomers} // Passa a função de atualização
       />
       <DataTable
-        columns={columns}
+        columns={columns({ setSelectedCustomer, setIsModalOpen })} // Passa as funções para as colunas
         data={customers}
         searchValue={searchValue}
-        searchFields={["name", "document", "email", "mobile"]} // Campos para filtrar
+        searchFields={["name", "document", "email", "mobile"]}
         dataTableType={EmptyStateType.CUSTOMER}
-        isLoading={isLoading} // Passa o estado de loading para o DataTable
-        rowProps={(row) => ({
-          className: "cursor-pointer hover:bg-gray-900",
-          onClick: () => handleRowClick(row.original),
-        })}
-        addAction={() => {
-          setIsAddModalOpen(true);
-        }}
+        isLoading={isLoading}
+        addAction={() => setIsAddModalOpen(true)}
       />
 
       {/* Utiliza a propriedade "key" para recriar o componente sempre que o cliente for alterado */}
