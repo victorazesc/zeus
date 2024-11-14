@@ -17,8 +17,11 @@ const AppLayout: FC<IAppLayout> = observer((props) => {
     <>
       <UserAuthWrapper>
         <div className="relative flex h-screen w-full overflow-hidden">
+          <AppSidebar />
           <main className="relative flex h-full w-full flex-col overflow-hidden bg-custom-background-90">
-            <div className="header-container">{header}</div>{" "}
+            <div className="relative z-10 flex h-[3.75rem] bg-custom-background-100 w-full flex-shrink-0 flex-row items-center justify-between gap-x-2 gap-y-4 border-b border-custom-border-200 p-4">
+              {header}
+            </div>
             {/* Header dinâmico */}
             <div className="h-full w-full overflow-hidden">
               <div className="relative h-full w-full overflow-x-hidden overflow-y-scroll">

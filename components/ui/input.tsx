@@ -1,25 +1,54 @@
-import * as React from "react"
+import { cn } from "@/lib/utils";
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> { }
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  mode?: "primary" | "transparent" | "true-transparent";
+  inputSize?: "xs" | "sm" | "md";
+  hasError?: boolean;
+  className?: string;
+  autoComplete?: "on" | "off";
+}
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
-    return (
-      <input
-        type={type}
-        className={cn(
-          "pr-12 flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-custom-text-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-          className
-        )}
-        ref={ref}
-        {...props}
-      />
-    )
-  }
-)
-Input.displayName = "Input"
+const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
+  const {
+    id,
+    type,
+    name,
+    mode = "primary",
+    inputSize = "sm",
+    hasError = false,
+    className = "",
+    autoComplete = "off",
+    ...rest
+  } = props;
 
-export { Input }
+  return (
+    <input
+      id={id}
+      ref={ref}
+      type={type}
+      name={name}
+      className={cn(
+        "block rounded-md bg-transparent text-sm placeholder-custom-text-400 focus:outline-none w-full",
+        {
+          "rounded-md border-[0.5px] border-custom-border-200 bg-custom-background-90": mode === "primary",
+          "rounded border-none bg-transparent ring-0 transition-all focus:ring-1 focus:ring-custom-primary":
+            mode === "transparent",
+          "rounded border-none bg-transparent ring-0": mode === "true-transparent",
+          "border-red-500": hasError,
+          "px-1.5 py-1": inputSize === "xs",
+          "px-3 py-2": inputSize === "sm",
+          "p-3": inputSize === "md",
+        },
+        className
+      )}
+      autoComplete={autoComplete}
+      {...rest}
+    />
+  );
+});
+
+Input.displayName = "form-input-field";
+
+export { Input };

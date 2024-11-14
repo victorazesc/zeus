@@ -75,12 +75,11 @@ export const WorkspaceDetailsForm: React.FC<Props> = (props) => {
 
     const handleUpdateWorkspace = async (formData: z.infer<typeof WorkspaceDetailSchema>) => {
         if (formState.isSubmitting) return;
-
         await workspaceService
             .updateWorkspace(formData, user?.lastWorkspaceId)
             .then(async (res) => {
                 if (res)
-                    router.push(`/${currentUserSettings.workspace.last_workspace_slug}`)
+                    router.push(`/${res.slug}`)
             })
             .catch((error) => {
                 console.error(error)

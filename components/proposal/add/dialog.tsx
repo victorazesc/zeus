@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
+
 import { Label } from "@/components/ui/label";
 import { MonetaryInput } from "@/components/ui/input-monetary";
 import { toast } from "sonner";
@@ -23,6 +23,7 @@ import { Customer, User } from "@prisma/client";
 import { Status } from "@/constants/proposal-status";
 import { useUser } from "@/hooks/stores/use-user";
 import { ProposalService } from "@/services/proposal.service";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const customerService = new CustomerService();
 const userService = new UserService();
@@ -183,9 +184,9 @@ export function AddProposalDialog({ onProposalAdded }: AddProposalDialogProps) {
                             <p>Valor total da proposta: R$ {totalProposalValue.toFixed(2)}</p>
                         </div>
                         <Tabs defaultValue="products" className="w-full">
-                            <TabsList className="bg-custom-background-90 p-1 rounded-lg mb-2">
-                                <TabsTrigger value="products">Produtos</TabsTrigger>
-                                <TabsTrigger value="services">Serviços</TabsTrigger>
+                            <TabsList className="bg-custom-background-90 p-1 rounded-lg mb-2 flex justify-between">
+                                <TabsTrigger className="w-full" value="products">Produtos</TabsTrigger>
+                                <TabsTrigger className="w-full" value="services">Serviços</TabsTrigger>
                             </TabsList>
                             <TabsContent value="products">
                                 <ProductMultiSelect onProductsChange={(products) => setValue("products", products)} onTotalPriceChange={setTotalPrice} parentSelectedProducts={getValues("products") || []} />

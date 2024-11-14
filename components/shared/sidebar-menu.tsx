@@ -21,8 +21,8 @@ export const WorkspaceSidebarMenu = observer(() => {
 
                             <div
                                 className={`group flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium outline-none ${link.highlight(path, `/${workspaceSlug}`)
-                                    ? "bg-custom-primary-10 text-custom-primary-100"
-                                    : "text-custom-sidebar-text-200 hover:bg-custom-primary-10 focus:bg-custom-sidebar-background-80"
+                                    ? "text-custom-primary-200 bg-custom-primary-100/10"
+                                    : "text-custom-sidebar-text-200 hover:bg-custom-primary-10/5 focus:bg-custom-sidebar-background-80"
                                     }`}
                             >
                                 {

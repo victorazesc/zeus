@@ -14,6 +14,7 @@ import { CustomerService } from "@/services/customer.service";
 import { UpdateCustomerDialog } from "@/components/customer/update/dialog";
 import { Customer } from "@prisma/client";
 import { AddCustomerDialog } from "@/components/customer/add/dialog";
+import AppLayout from "../../app-layout";
 
 const customerService = new CustomerService();
 
@@ -51,13 +52,17 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   };
 
   return (
-    <>
+    <AppLayout
+      header={
+        <ClientsHeader
+          searchValue={searchValue}
+          setSearchValue={setSearchValue}
+          onCustomerAdded={fetchCustomers} // Passa a função de atualização
+        />
+      }
+    >
       <PageHead title={pageTitle} />
-      <ClientsHeader
-        searchValue={searchValue}
-        setSearchValue={setSearchValue}
-        onCustomerAdded={fetchCustomers} // Passa a função de atualização
-      />
+
       <DataTable
         columns={columns({ setSelectedCustomer, setIsModalOpen })} // Passa as funções para as colunas
         data={customers}
@@ -84,7 +89,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         showTrigger={false} // Define como false se quiser controlar só pelo pai
         onCustomerAdded={fetchCustomers}
       />
-    </>
+    </AppLayout>
   );
 });
 

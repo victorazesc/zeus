@@ -47,7 +47,7 @@ export const OnboardingSidebar: React.FC<Props> = (props) => {
 
     return (
         <div className="fixed hidden h-full w-1/5 max-w-[320px] lg:block">
-            <div className="relative h-full border-r border-slate-900 ">
+            <div className="relative h-full border-r border-custom-border-200 ">
                 {control && setValue ? (
                     <div>
                         <Controller

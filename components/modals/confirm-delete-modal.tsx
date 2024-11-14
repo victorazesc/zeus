@@ -39,7 +39,7 @@ export const ConfirmDeleteModal = ({
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          <Button variant="destructive" className="text-white bg-red-500 hover:bg-red-600" onClick={onConfirm}>
             Excluir
           </Button>
         </DialogFooter>

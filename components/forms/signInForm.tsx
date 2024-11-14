@@ -77,6 +77,7 @@ export const SignInForm: React.FC<Props> = ({ onSubmit, updateEmail }) => {
                                             <Input
                                                 placeholder="example@email.com"
                                                 type='text'
+                                                className={`disable-autofill-style h-[46px] w-full placeholder:text-onboarding-text-400 border-0`}
                                                 required
                                                 value={value}
                                                 onChange={onChange}

@@ -137,10 +137,10 @@ export function ServiceMultiSelect({
 
             {/* Exibição dos serviços selecionados em formato de tabela */}
             {selectedServices.length > 0 ? (
-                <div className="border border-t-0 rounded shadow-sm -mt-1" style={{ height: "300px", display: "flex", flexDirection: "column" }}>
+                <div className="border border-t-0 rounded shadow-sm -mt-1 border-custom-border-200" style={{ height: "300px", display: "flex", flexDirection: "column" }}>
                     <div style={{ flexGrow: 1, overflowY: "auto" }}>
                         <table className="min-w-full text-sm">
-                            <thead className="bg-custom-background-100 text-slate-700 sticky top-0">
+                            <thead className="bg-custom-background-100 text-custom-text-200 sticky top-0">
                                 <tr>
                                     <th className="py-2 px-4 text-left">Qntd</th>
                                     <th className="py-2 px-4 text-left">Descrição</th>
@@ -152,14 +152,14 @@ export function ServiceMultiSelect({
                                 {selectedServiceDetails.map((service: Service) => {
                                     const selectedService = selectedServices.find((item) => item.service.id === service.id);
                                     return (
-                                        <tr key={service.value} className="border-b">
+                                        <tr key={service.value} className="border-b border-custom-border-200">
                                             <td className="py-2 px-4">
                                                 <input
                                                     type="number"
                                                     min={1}
                                                     value={selectedService?.quantity ?? 1}
                                                     onChange={(e) => updateServiceQuantity(service.id, parseInt(e.target.value, 10) || 1)}
-                                                    className="w-16 border rounded px-1 text-center bg-custom-background-100"
+                                                    className="w-16 border border-custom-border-200 rounded px-1 text-center bg-custom-background-100"
                                                 />
                                             </td>
                                             <td className="py-2 px-4">{service.label}</td>
@@ -183,8 +183,8 @@ export function ServiceMultiSelect({
                     </div>
                 </div>
             ) : (
-                <div className="border border-t-0 rounded shadow-sm -mt-1" style={{ height: "300px", display: "flex", flexDirection: "column" }}>
-                    <p className="m-auto text-gray-500">Nenhum serviço selecionado.</p>
+                <div className="border border-t-0 rounded shadow-sm -mt-1 border-custom-border-200" style={{ height: "300px", display: "flex", flexDirection: "column" }}>
+                    <p className="m-auto text-custom-text-400">Nenhum serviço selecionado.</p>
                 </div>
             )}
         </div>

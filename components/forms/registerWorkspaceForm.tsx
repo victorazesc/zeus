@@ -98,7 +98,7 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                     control={control}
                     name="tradeName"
                     render={({ field: { value, ref, onChange } }) => (
-                        <div className="relative flex items-center rounded-md bg-onboarding-background-200">
+                        <div className="relative flex items-center rounded-md">
                             <Input
                                 id="tradeName"
                                 name="tradeName"
@@ -123,6 +123,7 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                             control={control}
                             name="name"
                             render={({ field: { value, onChange, ref } }) => (
+                                <div className="relative flex items-center rounded-md bg-onboarding-background-200">
                                 <Input
                                     id="name"
                                     name="name"
@@ -134,8 +135,9 @@ export const WorkspaceForm: React.FC<Props> = (props) => {
                                     }}
                                     ref={ref}
                                     placeholder="Qual é a razão social ?"
-                                    className="w-full border-onboarding-border-100 focus:border-custom-primary-100"
+                                    className="h-[46px] w-full border-onboarding-border-100 placeholder:text-custom-text-400/50"
                                 />
+                                </div>
                             )}
                         />
                     </div>

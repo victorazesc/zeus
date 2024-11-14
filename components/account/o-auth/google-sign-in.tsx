@@ -10,9 +10,7 @@ type Props = {
 
 export const GoogleSignInButton: FC<Props> = (props) => {
   const { handleSignIn, clientId, type } = props;
-  // refs
   const googleSignInButton = useRef<HTMLDivElement>(null);
-  // states
   const [gsiScriptLoaded, setGsiScriptLoaded] = useState(false);
 
   const loadScript = useCallback(() => {
@@ -28,21 +26,18 @@ export const GoogleSignInButton: FC<Props> = (props) => {
         googleSignInButton.current,
         {
           type: "standard",
-          theme: "outline",
+          theme: "outline", // ou "filled_black"
           size: "large",
           width: '100%',
           logo_alignment: "center",
           text: type === "sign_in" ? "signin_with" : "signup_with",
         } as GsiButtonConfiguration
       );
-
-      window?.google?.accounts.id
     } catch (err) {
       console.error(err);
     }
 
     window?.google?.accounts.id.prompt();
-
     setGsiScriptLoaded(true);
   }, [handleSignIn, gsiScriptLoaded, clientId, type]);
 
@@ -58,7 +53,12 @@ export const GoogleSignInButton: FC<Props> = (props) => {
   return (
     <>
       <Script src="https://accounts.google.com/gsi/client" async defer onLoad={loadScript} />
-      <div className="!w-full justify-center flex overflow-hidden rounded" id="googleSignInButton" ref={googleSignInButton} />
+      <div
+        className="flex w-full justify-center overflow-hidden rounded bg-custom-background-100"
+        id="googleSignInButton"
+        ref={googleSignInButton}
+        style={{ padding: '4px', borderRadius: '8px' }}
+      />
     </>
   );
 };

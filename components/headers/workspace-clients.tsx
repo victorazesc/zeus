@@ -7,7 +7,7 @@ import { AddCustomerDialog } from "../customer/add/dialog";
 
 export const ClientsHeader = observer(({ searchValue, setSearchValue, onCustomerAdded }: any) => {
   return (
-    <div className="relative z-10 flex h-[3.75rem] w-full flex-shrink-0 flex-row items-center justify-between gap-x-2 gap-y-4 border-b border-custom-border-200 p-4">
+    <div className="relative z-10 flex h-[3.75rem] bg-custom-background-100 w-full flex-shrink-0 flex-row items-center justify-between gap-x-2 gap-y-4 border-b border-custom-border-200 p-4">
       <div className="flex flex-grow items-center gap-2 overflow-ellipsis whitespace-nowrap">
         <div>
           <Breadcrumbs>

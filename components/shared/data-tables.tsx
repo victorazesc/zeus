@@ -48,86 +48,91 @@ const getNestedValue = (obj: any, path: string) => {
 };
 
 export function DataTable<TData, TValue>({
-  columns,
-  data,
-  searchValue,
-  searchFields = [],
-  dataTableType,
-  rowProps,
-  addAction,
-  isLoading = false, // Prop padrão definida como falso
-}: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-
-  const filteredData = React.useMemo(() => {
-    const normalizedSearch = removeSpecialCharacters(searchValue);
-
-    return data.filter((item) => {
-      if (!searchFields.length) return true;
-
-      return searchFields.some((field) => {
-        let fieldValue = "";
-
-        if (field === "status") {
-          const statusKey = (item as any)["status"] as Status;
-          fieldValue = PROPOSAL_STATUS[statusKey]?.label || "";
-        } else {
-          fieldValue = getNestedValue(item, field as string) || "";
-        }
-
-        return removeSpecialCharacters(String(fieldValue)).includes(
-          normalizedSearch
-        );
-      });
-    });
-  }, [data, searchValue, searchFields]);
-
-  const table = useReactTable({
-    data: filteredData,
     columns,
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
-  });
-
-  return (
-    <div>
-      <div className="rounded-md">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading ? ( // Exibe o loading se estiver carregando
-              <>
+    data,
+    searchValue,
+    searchFields = [],
+    dataTableType,
+    rowProps,
+    addAction,
+    isLoading = false,
+  }: DataTableProps<TData, TValue>) {
+    const [sorting, setSorting] = React.useState<SortingState>([]);
+  
+    const filteredData = React.useMemo(() => {
+      const normalizedSearch = removeSpecialCharacters(searchValue);
+  
+      return data.filter((item) => {
+        if (!searchFields.length) return true;
+  
+        return searchFields.some((field) => {
+          let fieldValue = "";
+  
+          if (field === "status") {
+            const statusKey = (item as any)["status"] as Status;
+            fieldValue = PROPOSAL_STATUS[statusKey]?.label || "";
+          } else {
+            fieldValue = getNestedValue(item, field as string) || "";
+          }
+  
+          return removeSpecialCharacters(String(fieldValue)).includes(
+            normalizedSearch
+          );
+        });
+      });
+    }, [data, searchValue, searchFields]);
+  
+    const table = useReactTable({
+      data: filteredData,
+      columns,
+      onSortingChange: setSorting,
+      getCoreRowModel: getCoreRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      state: {
+        sorting,
+      },
+    });
+  
+    return (
+      <div className="flex flex-col items-center w-full h-full ">
+        {isLoading ? (
+          // Exibe o Skeleton (carregando) enquanto os dados estão carregando
+          <div className="w-full">
+            <Table>
+              <TableBody className="bg-transparent">
                 {[...Array(10)].map((_, rowIndex) => (
-                  <TableRow key={rowIndex}>
+                  <TableRow key={rowIndex} className="hover:bg-transparent bg-transparent">
                     {columns.map((column, colIndex) => (
-                      <TableCell key={colIndex}>
+                      <TableCell key={colIndex} className="border-transparent">
                         <Skeleton className="h-6"></Skeleton>
                       </TableCell>
                     ))}
                   </TableRow>
                 ))}
-              </>
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              </TableBody>
+            </Table>
+          </div>
+        ) : filteredData.length ? (
+          // Renderiza a tabela apenas se houver dados
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -135,31 +140,23 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  <EmptyState
-                    type={dataTableType}
-                    size="sm"
-                    primaryButtonOnClick={addAction}
-                  />
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          // Mostra apenas o EmptyState se não houver dados
+          <div className="flex w-full h-full min-h-[300px] items-center justify-center">
+            <EmptyState
+              type={dataTableType}
+              size="sm"
+              primaryButtonOnClick={addAction}
+            />
+          </div>
+        )}
       </div>
-    </div>
-  );
-}
+    );
+  }

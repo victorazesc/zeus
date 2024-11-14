@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { PageHead } from "@/components/core/page-title";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
@@ -10,6 +10,7 @@ import { EmptyStateType } from "@/constants/empty-state";
 import { columns } from "@/components/product/columns";
 import { ProductsHeader } from "@/components/headers/workspace-products";
 import { ProductService } from "@/services/product.service";
+import AppLayout from "../../app-layout";
 
 const productService = new ProductService();
 
@@ -18,7 +19,9 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   const [searchValue, setSearchValue] = useState(""); // Estado para a busca
   const [products, setProducts] = useState<Partial<Product>[]>([]);
   // derived values
-  const pageTitle = currentWorkspace?.name ? `${currentWorkspace?.name} - Dashboard` : undefined;
+  const pageTitle = currentWorkspace?.name
+    ? `${currentWorkspace?.name} - Dashboard`
+    : undefined;
 
   // Busca inicial de produtos quando a página carrega
   const fetchProducts = async () => {
@@ -31,13 +34,17 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   }, []);
 
   return (
-    <>
+    <AppLayout
+      header={
+        <ProductsHeader
+          searchValue={searchValue}
+          setSearchValue={setSearchValue}
+          onProductAdded={fetchProducts}
+        />
+      }
+    >
       <PageHead title={pageTitle} />
-      <ProductsHeader
-        searchValue={searchValue}
-        setSearchValue={setSearchValue}
-        onProductAdded={fetchProducts}
-      />
+
       <DataTable
         columns={columns}
         data={products}
@@ -45,7 +52,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         searchFields={["description"]} // Campos para filtrar
         dataTableType={EmptyStateType.PRODUCT}
       />
-    </>
+    </AppLayout>
   );
 });
 

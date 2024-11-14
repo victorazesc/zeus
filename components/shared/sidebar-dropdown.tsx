@@ -136,7 +136,7 @@ export const WorkspaceSidebarDropdown = observer(() => {
               leaveTo="transform opacity-0 scale-95"
             >
               <Menu.Items as={Fragment}>
-                <div className="fixed left-4 z-20 mt-1 flex w-full max-w-[19rem] origin-top-left flex-col rounded-md border-[0.5px] bg-custom-background-100 shadow-lg divide-y divide-custom-border-100 outline-none">
+                <div className="fixed left-4 z-20 mt-1 flex w-full max-w-[19rem] origin-top-left flex-col rounded-md border-[0.5px] border-custom-border-200 bg-custom-background-100 shadow-lg divide-y divide-custom-border-200 outline-none">
                   <div className="flex max-h-96 flex-col items-start justify-start gap-2 overflow-y-scroll mb-2 px-4 vertical-scrollbar scrollbar-sm">
                     <h6 className="sticky top-0 z-10 h-full w-full pt-3 pb-1 text-sm font-medium text-custom-sidebar-text-400">
                       {currentUser?.email}
@@ -263,7 +263,7 @@ export const WorkspaceSidebarDropdown = observer(() => {
         >
           <Menu.Items
             className="absolute left-0 z-20 mt-1 flex w-52 origin-top-left  flex-col divide-y
-          divide-custom-sidebar-border-200 rounded-md border border-custom-sidebar-border-200 bg-custom-primary-0 px-1 py-2 text-xs shadow-lg outline-none"
+          divide-custom-border-200 rounded-md border border-custom-border-200 bg-custom-background-100 px-1 py-2 text-xs shadow-lg outline-none"
             ref={setPopperElement}
             style={styles.popper}
             {...attributes.popper}

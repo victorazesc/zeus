@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
+import { cn } from "@/lib/utils";
 
 type CustomerFormData = z.infer<typeof customerSchema>;
 const customerService = new CustomerService();

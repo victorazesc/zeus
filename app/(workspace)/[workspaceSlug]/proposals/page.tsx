@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { PageHead } from "@/components/core/page-title";
 import { observer } from "mobx-react";
@@ -11,17 +11,21 @@ import { ProposalsHeader } from "@/components/headers/workspace-proposal";
 import { UpdateProposalDialog } from "@/components/proposal/update/dialog";
 import { ProposalService } from "@/services/proposal.service";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
+import AppLayout from "../../app-layout";
 
-const proposalService = new ProposalService()
+const proposalService = new ProposalService();
 
 const WorkspacePage: NextPageWithLayout = observer(() => {
   const { currentWorkspace } = useWorkspace();
   const [searchValue, setSearchValue] = useState("");
-  const [selectedProposal, setSelectedProposal] = useState<Partial<Proposal> | null>(null);
+  const [selectedProposal, setSelectedProposal] =
+    useState<Partial<Proposal> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [proposals, setProposals] = useState<Partial<Proposal>[]>([]);
   // derived values
-  const pageTitle = currentWorkspace?.name ? `${currentWorkspace?.name} - Dashboard` : undefined;
+  const pageTitle = currentWorkspace?.name
+    ? `${currentWorkspace?.name} - Dashboard`
+    : undefined;
 
   // Busca inicial de produtos quando a página carrega
   const fetchProposals = async () => {
@@ -34,9 +38,16 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   }, []);
 
   return (
-    <>
+    <AppLayout
+      header={
+        <ProposalsHeader
+          searchValue={searchValue}
+          setSearchValue={setSearchValue}
+          onProposalAdded={fetchProposals}
+        />
+      }
+    >
       <PageHead title={pageTitle} />
-      <ProposalsHeader searchValue={searchValue} setSearchValue={setSearchValue} onProposalAdded={fetchProposals} />
       <DataTable
         columns={columns}
         data={proposals}
@@ -59,7 +70,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
           onOpenChange={setIsModalOpen}
         />
       )}
-    </>
+    </AppLayout>
   );
 });
 

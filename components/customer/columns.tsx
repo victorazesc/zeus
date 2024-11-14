@@ -120,7 +120,7 @@ export const columns = ({
       };
 
       return (
-        <>
+        <div className="flex items-center justify-center">
           <DropdownMenu open={isDropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button
@@ -154,7 +154,7 @@ export const columns = ({
             title={`Tem certeza de que deseja excluir o cliente ${customer.name}?`}
             message="Todos os dados relacionados a este cliente, incluindo informações pessoais, registros de atividades e acessos associados, serão permanentemente excluídos. Esta ação é irreversível e não poderá ser desfeita."
           />
-        </>
+        </div>
       );
     },
   },

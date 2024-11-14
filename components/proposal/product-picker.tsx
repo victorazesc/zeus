@@ -138,10 +138,10 @@ export function ProductMultiSelect({
 
             {/* Exibição dos produtos selecionados em formato de tabela */}
             {selectedProducts?.length > 0 ? (
-                <div className="border border-t-0 rounded shadow-sm -mt-1" style={{ height: "300px", display: "flex", flexDirection: "column" }}>
+                <div className="border border-t-0 rounded shadow-sm -mt-1 border-custom-border-200" style={{ height: "300px", display: "flex", flexDirection: "column" }}>
                     <div style={{ flexGrow: 1, overflowY: "auto" }}>
                         <table className="min-w-full text-sm">
-                            <thead className="bg-custom-background-100 text-slate-700 sticky top-0">
+                            <thead className="bg-custom-background-100 text-custom-text-200 sticky top-0">
                                 <tr>
                                     <th className="py-2 px-4 text-left">Qntd</th>
                                     <th className="py-2 px-4 text-left">Descrição</th>
@@ -153,14 +153,14 @@ export function ProductMultiSelect({
                                 {selectedProductDetails.map((product: Product) => {
                                     const selectedProduct = selectedProducts.find((item) => item.product.id === product.id);
                                     return (
-                                        <tr key={product.value} className="border-b">
+                                        <tr key={product.value} className="border-b border-custom-border-200 text-custom-text-100">
                                             <td className="py-2 px-4">
                                                 <input
                                                     type="number"
                                                     min={1}
                                                     value={selectedProduct?.quantity ?? 1}
                                                     onChange={(e) => updateProductQuantity(product.id, parseInt(e.target.value, 10) || 1)}
-                                                    className="w-16 border rounded px-1 text-center bg-custom-background-100"
+                                                    className="w-16 border border-custom-border-200 rounded px-1 text-center bg-custom-background-100"
                                                 />
                                             </td>
                                             <td className="py-2 px-4">{product.label}</td>
@@ -184,8 +184,8 @@ export function ProductMultiSelect({
                     </div>
                 </div>
             ) : (
-                <div className="border border-t-0 rounded shadow-sm -mt-1" style={{ height: "300px", display: "flex", flexDirection: "column" }}>
-                    <p className="m-auto text-gray-500">Nenhum produto selecionado.</p>
+                <div className="border border-t-0 rounded shadow-sm -mt-1 border-custom-border-200" style={{ height: "300px", display: "flex", flexDirection: "column" }}>
+                    <p className="m-auto text-custom-text-400">Nenhum produto selecionado.</p>
                 </div>
             )}
         </div>
