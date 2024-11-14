@@ -15,16 +15,22 @@ import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { ConfirmDeleteModal } from "../modals/confirm-delete-modal";
 import { useState } from "react";
+import { CustomerService } from "@/services/customer.service";
+import { toast } from "sonner";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
+const customerService = new CustomerService();
+
 export const columns = ({
   setSelectedCustomer,
   setIsModalOpen,
+  onCustomerDeleted,
 }: {
   setSelectedCustomer: (customer: Partial<Customer>) => void;
   setIsModalOpen: (open: boolean) => void;
+  onCustomerDeleted: () => void;
 }) => [
   {
     accessorKey: "name",
@@ -114,8 +120,18 @@ export const columns = ({
       };
 
       const handleCloseModal = () => setDeleteModalOpen(false);
-      const handleConfirmDelete = () => {
-        console.log(`Deleting customer ${customer.name}`);
+      const handleConfirmDelete = async () => {
+        await customerService
+          .deleteCustomer(customer.id)
+          .then((resp) => {
+            console.log("deu bom");
+            onCustomerDeleted();
+            toast.success("Cliente deletado com sucesso!");
+          })
+          .catch((error) => {
+            console.log(error);
+            toast.error("Erro ao deletar cliente!");
+          });
         setDeleteModalOpen(false);
       };
 

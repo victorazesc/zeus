@@ -2,6 +2,7 @@ import {
   createCustomer,
   getCustomers,
   updateCustomer,
+  deleteCustomer,
 } from "@/actions/customer.action";
 import { Customer } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -19,5 +20,14 @@ export async function PUT(
   const data = (await _request.json()) as Customer;
   const customerId = Number(params.id);
   const result = await updateCustomer(data, customerId);
+  return NextResponse.json(result);
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: number } }
+) {
+  const customerId = Number(params.id);
+  const result = await deleteCustomer(customerId);
   return NextResponse.json(result);
 }

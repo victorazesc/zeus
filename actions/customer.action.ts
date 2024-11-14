@@ -191,3 +191,12 @@ export async function updateCustomer(
     throw new Error("Erro ao atualizar o cliente.");
   }
 }
+
+export async function deleteCustomer(id: number) {
+  try {
+    await prisma.customer.delete({ where: { id } });
+    return true;
+  } catch (error) {
+    throw new Error("Error");
+  }
+}

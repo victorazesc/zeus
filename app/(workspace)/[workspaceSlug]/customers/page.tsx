@@ -45,12 +45,6 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
     fetchCustomers();
   }, []);
 
-  // Função para manipular o clique na linha e abrir o modal com o cliente correto
-  const handleRowClick = (customer: Partial<Customer>) => {
-    setSelectedCustomer({ ...customer }); // Atualiza o cliente selecionado
-    setIsModalOpen(true); // Abre o modal após atualizar o estado
-  };
-
   return (
     <AppLayout
       header={
@@ -64,7 +58,11 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
       <PageHead title={pageTitle} />
 
       <DataTable
-        columns={columns({ setSelectedCustomer, setIsModalOpen })} // Passa as funções para as colunas
+        columns={columns({
+          setSelectedCustomer,
+          setIsModalOpen,
+          onCustomerDeleted: () => fetchCustomers(),
+        })} // Passa as funções para as colunas
         data={customers}
         searchValue={searchValue}
         searchFields={["name", "document", "email", "mobile"]}

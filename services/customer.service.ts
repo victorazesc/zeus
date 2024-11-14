@@ -39,4 +39,13 @@ export class CustomerService extends APIService {
         throw error?.response.data;
       });
   }
+  async deleteCustomer(customerId: number): Promise<Customer> {
+    return this.delete(`/api/customers/${customerId}`)
+      .then((response) => {
+        return response?.data;
+      })
+      .catch((error) => {
+        throw error?.response.data;
+      });
+  }
 }
