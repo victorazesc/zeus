@@ -142,10 +142,10 @@ export const SignInFormWithPassword: React.FC<Props> = ({ email, handleStepChang
                             )}
                         />
 
-                        <Button type='submit' variant={"default"} size={"lg"} disabled={!isValid} loading={isSubmitting} className='border-custom-primary-100 text-white  w-full'>
+                        <Button type='submit' variant={"default"} size={"lg"} disabled={!isValid} loading={isSubmitting} className='border-custom-primary-100 text-white w-full'>
                             Continuar
                         </Button>
-                        <Button type='button' loading={isSendingUniqueCode} onClick={handleSendUniqueCode} variant={"outline"} size={"lg"} className='border-custom-primary-1000 text-custom-primary-1000  w-full'>
+                        <Button type='button' loading={isSendingUniqueCode} onClick={handleSendUniqueCode} variant={"outline"} size={"lg"} className="w-full">
                             Logar com um código no email
                         </Button>
                     </form>

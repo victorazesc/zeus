@@ -4,7 +4,10 @@ import { User } from "@prisma/client";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { RootStore } from "../root.store";
 import { IUserSettings } from "@/types/user";
-import { IUserMembershipStore, UserMembershipStore } from "./user-membership.store";
+import {
+  IUserMembershipStore,
+  UserMembershipStore,
+} from "./user-membership.store";
 
 export interface IUserRootStore {
   // states
@@ -152,10 +155,10 @@ export class UserRootStore implements IUserRootStore {
         } as User;
       });
       const response = await this.userService.updateMe(data);
-      console.log(response, 'veio do update')
-      // runInAction(() => {
-      //   this.currentUser = response;
-      // });
+      console.log(response, "veio do update");
+      runInAction(() => {
+        this.currentUser = response;
+      });
       return response;
     } catch (error) {
       this.fetchCurrentUser();
@@ -164,9 +167,9 @@ export class UserRootStore implements IUserRootStore {
   };
 
   /**
- * Fetches the current user settings
- * @returns Promise<IUserSettings>
- */
+   * Fetches the current user settings
+   * @returns Promise<IUserSettings>
+   */
   fetchCurrentUserSettings = async () =>
     await this.userService.currentUserSettings().then((response) => {
       runInAction(() => {

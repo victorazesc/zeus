@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/shared/app-sidebar";
 import { UserAuthWrapper } from "@/lib/user-wrapper";
 import { observer } from "mobx-react-lite";
 import "../globals.css";
+import { WorkspaceWrapper } from "@/lib/workspace-wrapper";
 
 export interface IAppLayout {
   children: ReactNode;
@@ -16,17 +17,19 @@ const AppLayout: FC<IAppLayout> = observer((props) => {
   return (
     <>
       <UserAuthWrapper>
-        <div className="relative flex h-screen w-full overflow-hidden">
-          <main className="relative flex h-full w-full flex-col overflow-hidden bg-custom-background-90">
-            <div className="header-container">{header}</div>{" "}
-            {/* Header dinâmico */}
-            <div className="h-full w-full overflow-hidden">
-              <div className="relative h-full w-full overflow-x-hidden overflow-y-scroll">
-                {children}
+        <WorkspaceWrapper>
+          <div className="relative flex h-screen w-full overflow-hidden">
+            <main className="relative flex h-full w-full flex-col overflow-hidden bg-custom-background-90">
+              <div className="header-container">{header}</div>{" "}
+              {/* Header dinâmico */}
+              <div className="h-full w-full overflow-hidden">
+                <div className="relative h-full w-full overflow-x-hidden overflow-y-scroll">
+                  {children}
+                </div>
               </div>
-            </div>
-          </main>
-        </div>
+            </main>
+          </div>
+        </WorkspaceWrapper>
       </UserAuthWrapper>
     </>
   );

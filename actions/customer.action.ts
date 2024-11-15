@@ -92,12 +92,13 @@ const customersMock: Partial<Customer>[] = [
 ];
 
 export async function getCustomers(
-  workspaceId: number
+  request: NextRequest
 ): Promise<Partial<Customer>[] | null> {
   try {
+    const currentUser = await getMe(request);
     const customers = await prisma.customer.findMany({
       where: {
-        workspaceId,
+        workspaceId: currentUser?.lastWorkspaceId!,
       },
     });
     return customers;

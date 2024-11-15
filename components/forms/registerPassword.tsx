@@ -128,7 +128,7 @@ export const SignInOptionalSetPasswordForm: React.FC<Props> = (props) => {
                         <Button type='submit' variant={"default"} size={"lg"} loading={isSubmitting} disabled={isSubmitting || !isValid} className='border-custom-primary-100 text-white  w-full'>
                             Continuar
                         </Button>
-                        <Button type='button' onClick={handleGoToWorkspace} loading={isGoingToWorkspace} variant={"outline"} size={"lg"} className='border-custom-primary-1000 text-custom-primary-1000  w-full'>
+                        <Button type='button' onClick={handleGoToWorkspace} loading={isGoingToWorkspace} variant={"outline"} size={"lg"} className="w-full">
                             Pular Etapa
                         </Button>
                     </form>

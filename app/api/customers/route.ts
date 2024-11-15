@@ -9,10 +9,7 @@ export async function GET(
   { params }: { params: { workspaceId: number } }
 ) {
   try {
-    const { lastWorkspaceId } = verifyJwt(_request) as any;
-    if (!lastWorkspaceId) throw new Error("erro");
-
-    const result = await getCustomers(lastWorkspaceId);
+    const result = await getCustomers(_request);
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.error();
