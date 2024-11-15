@@ -80,7 +80,7 @@ export const WorkspaceSidebarDropdown = observer(() => {
     await authService.signOut()
       .then(() => {
         mutate("CURRENT_USER_DETAILS", null)
-        router.push("/");
+        router.push("/sign-in");
       })
       .catch(() =>
         toast.error("Ah, não! algo deu errado.", {
