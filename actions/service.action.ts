@@ -1,90 +1,86 @@
-const servicesMock: Partial<Service>[] = [
-  {
-    id: 1,
-    name: 'Instalação de Sirene',
-    description: 'Serviço de instalação de Sirene',
-    price: 200,
-    duration: '2 horas',
-    category: 'Instalação de Equipamentos',
-  },
-  {
-    id: 2,
-    name: 'Manutenção de Câmera',
-    description: 'Serviço de manutenção preventiva de câmera de segurança',
-    price: 150,
-    duration: '1 hora',
-    category: 'Manutenção',
-  },
-  {
-    id: 3,
-    name: 'Instalação de Central de Alarme',
-    description: 'Instalação completa de uma central de alarme residencial ou comercial',
-    price: 300,
-    duration: '3 horas',
-    category: 'Instalação de Equipamentos',
-  },
-  {
-    id: 4,
-    name: 'Configuração de DVR',
-    description: 'Serviço de configuração e ajustes de DVR para gravação de câmeras',
-    price: 120,
-    duration: '1.5 horas',
-    category: 'Configuração',
-  },
-  {
-    id: 5,
-    name: 'Instalação de Câmeras',
-    description: 'Instalação de até 4 câmeras de segurança',
-    price: 500,
-    duration: '5 horas',
-    category: 'Instalação de Equipamentos',
-  },
-  {
-    id: 6,
-    name: 'Instalação de Fechadura Eletrônica',
-    description: 'Serviço de instalação de fechaduras eletrônicas e configuração de senha',
-    price: 250,
-    duration: '2 horas',
-    category: 'Instalação de Equipamentos',
-  },
-  {
-    id: 7,
-    name: 'Teste e Verificação de Equipamentos',
-    description: 'Teste de equipamentos de segurança e verificação de funcionamento',
-    price: 100,
-    duration: '1 hora',
-    category: 'Manutenção',
-  },
-  {
-    id: 8,
-    name: 'Consultoria de Segurança',
-    description: 'Análise e consultoria de segurança para residências e empresas',
-    price: 400,
-    duration: '4 horas',
-    category: 'Consultoria',
-  },
-  {
-    id: 9,
-    name: 'Instalação de Controle de Acesso',
-    description: 'Instalação de sistemas de controle de acesso para portas e portões',
-    price: 350,
-    duration: '3 horas',
-    category: 'Instalação de Equipamentos',
-  },
-  {
-    id: 10,
-    name: 'Reparo de Fiação',
-    description: 'Reparo e manutenção de fiação para sistemas de segurança',
-    price: 180,
-    duration: '2 horas',
-    category: 'Manutenção',
-  }
-];
+import prisma from "@/lib/prisma";
+import type { NextRequest } from "next/server";
+import { getMe } from "./user.action";
+import { Prisma } from "@prisma/client";
+import { Service } from "@prisma/client";
 
-export async function getServices(): Promise<Partial<Service>[] | null> {
-  return servicesMock
+export async function getServices(request: NextRequest) {
+  try {
+    const currentUser = await getMe(request);
+    const services = await prisma.service.findMany({
+      where: {
+        workspaceId: currentUser?.lastWorkspaceId!,
+      },
+    });
+    return services;
+  } catch (error: any) {
+    throw new Error(error);
+  }
 }
-export async function createService(data: Partial<Service>): Promise<Partial<Service> | null> {
-  servicesMock.unshift({ ...data, id: servicesMock.length + 1 })
-  return data
+
+export async function createService(data: Partial<Service>, req: NextRequest) {
+  try {
+    return await prisma.$transaction(async (prisma) => {
+      // Cria o cliente
+      const user = await getMe(req);
+      if (user?.lastWorkspaceId) {
+        const service = await prisma.service.create({
+          data: {
+            name: data?.name!,
+            description: data?.description!,
+            price: data?.price!,
+            category: data?.category,
+            duration: data?.duration,
+            workspaceId: user.lastWorkspaceId,
+          },
+        });
+        return service;
+      }
+
+      throw new Error("Não foi possível encontrar o usuário.");
+    });
+  } catch (error: any) {
+    console.error(error);
+    throw new Error("Erro ao criar o serviço.");
+  }
+}
+
+export async function updateService(
+  data: Partial<Service>,
+  serviceId: number
+): Promise<Partial<Service> | null> {
+  try {
+    // Atualiza o cliente no banco de dados
+    const updateService = await prisma.service.update({
+      where: { id: serviceId },
+      data: {
+        name: data?.name!,
+        description: data?.description!,
+        price: data?.price!,
+        category: data?.category,
+        duration: data?.duration,
+      },
+    });
+
+    return updateService;
+  } catch (error: any) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      throw new Error("Serviço não encontrado.");
+    }
+
+    console.error(error);
+    throw new Error("Erro ao atualizar o serviço.");
+  }
+}
+
+export async function deleteService(id: number) {
+  try {
+    await prisma.service.delete({ where: { id } });
+    return true;
+  } catch (error) {
+    throw new Error("Error");
+  }
 }

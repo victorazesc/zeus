@@ -90,4 +90,16 @@ model Workspace {
     Address   Address? @relation(fields: [addressId], references: [id])
 
     Customer Customer[]
+    services Service[] // Relacionamento com os serviços
+}
+
+model Service {
+    id          Int       @id @default(autoincrement())
+    name        String
+    description String
+    price       Float
+    duration    String? // Campo opcional
+    category    String? // Campo opcional
+    workspaceId Int
+    Workspace   Workspace @relation(fields: [workspaceId], references: [id])
 }

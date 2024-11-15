@@ -21,6 +21,7 @@ import { ServiceService } from "@/services/service.service";
 
 // Esquema de validação para o serviço
 const serviceSchema = z.object({
+  id: z.number().optional(),
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
   price: z.number().min(0, "O preço deve ser positivo"),
@@ -30,33 +31,21 @@ const serviceSchema = z.object({
 
 type ServiceFormData = z.infer<typeof serviceSchema>;
 
-interface AddServiceDialogProps {
-  onServiceAdded?: () => void;
+interface UpdateServiceDialogProps {
+  service: Partial<Service>;
   isOpen?: boolean;
-  setIsOpen?: (open: boolean) => void;
-  showTrigger?: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  onServiceUpdated?: () => void;
 }
 
 const serviceService = new ServiceService();
 
-export function AddServiceDialog({
-  onServiceAdded,
-  isOpen: externalIsOpen,
-  setIsOpen: externalSetIsOpen,
-  showTrigger = true,
-}: AddServiceDialogProps) {
-  const [addMore, setAddMore] = useState(false);
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
-
-  const isControlledExternally = typeof externalIsOpen !== "undefined";
-
-  const initialMockData = {
-    name: "",
-    description: "",
-    price: 0,
-    duration: "",
-    category: "",
-  };
+export function UpdateServiceDialog({
+  service,
+  isOpen,
+  onOpenChange,
+  onServiceUpdated,
+}: UpdateServiceDialogProps) {
 
   const {
     register,
@@ -67,16 +56,20 @@ export function AddServiceDialog({
     formState: { errors, isSubmitting, isValid },
   } = useForm<ServiceFormData>({
     resolver: zodResolver(serviceSchema),
-    defaultValues: initialMockData,
+    defaultValues: service || {
+      id: undefined,
+      name: "",
+      description: "",
+      price: 0,
+      duration: "",
+      category: "",
+    },
     mode: "onChange",
     reValidateMode: "onChange",
-    criteriaMode: "all",
   });
 
-  // Observando o campo de preço
   const price = watch("price");
 
-  // Função para formatar os valores em moeda brasileira
   const formatCurrency = (value: number) => {
     const options = {
       minimumFractionDigits: 2,
@@ -86,64 +79,39 @@ export function AddServiceDialog({
     return new Intl.NumberFormat("pt-BR", options).format(value);
   };
 
-  // Evento para formatar o valor durante a digitação
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const cleanedValue =
       parseFloat(e.target.value.replace(/[^\d]/g, "")) / 100 || 0;
     setValue("price", cleanedValue);
   };
 
-  const handleOpenChange = (open: boolean) => {
-    // Atualiza o estado interno e chama o setIsOpen externo se estiver presente
-    setInternalIsOpen(open);
-    if (isControlledExternally && externalSetIsOpen) {
-      externalSetIsOpen(open);
-    }
-  };
-
-  useEffect(() => {
-    // Sincronizar o estado interno com o externo apenas se for controlado externamente
-    if (isControlledExternally) {
-      setInternalIsOpen(externalIsOpen || false);
-    }
-  }, [externalIsOpen, isControlledExternally]);
-
   const onSubmit = async (data: ServiceFormData) => {
     if (isSubmitting) return;
 
-    // Aqui utilizamos a lógica de envio para o serviço
     await serviceService
-      .createService(data)
-      .then(async () => {
-        toast.success("Serviço adicionado com sucesso!");
-        reset();
-        if (onServiceAdded) {
-          onServiceAdded(); // Notifica o componente pai para atualizar a lista
+      .updateService(data, service.id!) // Método de atualização
+      .then(() => {
+        toast.success("Serviço atualizado com sucesso!");
+        if (onServiceUpdated) {
+          onServiceUpdated();
         }
-        handleOpenChange(addMore);
       })
       .catch((error: any) =>
-        toast.error("Erro ao adicionar serviço", {
+        toast.error("Erro ao atualizar serviço", {
           description:
-            error ?? "Houve um problema ao criar o serviço. Tente novamente.",
+            error ??
+            "Houve um problema ao atualizar o serviço. Tente novamente.",
         })
       );
+    onOpenChange(false);
   };
-  return (
-    <Dialog open={internalIsOpen} onOpenChange={handleOpenChange}>
-      {showTrigger && (
-        <DialogTrigger asChild>
-          <Button size="sm" className="items-center gap-1">
-            <Plus size={16} />
-            <span className="hidden sm:inline-block">Adicionar</span> Serviço
-          </Button>
-        </DialogTrigger>
-      )}
 
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px]">
         <form>
           <DialogHeader>
-            <DialogTitle>Cadastrar Serviço</DialogTitle>
+            <DialogTitle>Editar Serviço</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -184,7 +152,7 @@ export function AddServiceDialog({
                 <Input
                   id="price"
                   placeholder="R$ 0,00"
-                  value={formatCurrency(price || 0)} // Formata o valor conforme o usuário digita
+                  value={formatCurrency(price || 0)}
                   onChange={handleCurrencyChange}
                 />
                 {errors.price && (
@@ -225,20 +193,12 @@ export function AddServiceDialog({
           </div>
         </form>
         <DialogFooter>
-          <div className="mt-5 flex items-center justify-between gap-2 border-t border-custom-border-200 pt-5 w-full">
-            <div className="flex cursor-pointer items-center gap-2">
-              <Switch
-                checked={addMore}
-                onCheckedChange={() => setAddMore(!addMore)}
-              />
-              <span className="text-xs">Cadastrar mais</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
+          <div className="flex items-center justify-between gap-2 w-full">
+          <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => handleOpenChange(false)}
+                onClick={() => onOpenChange(false)}
               >
                 Cancelar
               </Button>
@@ -247,9 +207,8 @@ export function AddServiceDialog({
                 onClick={handleSubmit(onSubmit)}
                 disabled={isSubmitting || !isValid}
               >
-                Adicionar Serviço
+                Concluir
               </Button>
-            </div>
           </div>
         </DialogFooter>
       </DialogContent>
