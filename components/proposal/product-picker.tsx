@@ -14,7 +14,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ProductService } from "@/services/product.service";
 import { Spinner } from "../ui/circular-spinner";
 import { useProduct } from "@/hooks/stores/use-product";
 import { observer } from "mobx-react-lite";
@@ -37,7 +36,7 @@ export const ProductMultiSelect = observer(
     onTotalProfitChange,
     parentSelectedProducts,
   }: ProductMultiSelectProps) => {
-    const { products, isLoading } = useProductStoreWithSWR(useProduct(), false);
+    const { products, isLoading } = useProductStoreWithSWR(useProduct(), false, false);
     const [open, setOpen] = React.useState(false);
     const [selectedProducts, setSelectedProducts] = React.useState<
       { product: Partial<Product>; quantity: number }[]

@@ -69,7 +69,7 @@ export function AddProposalDialog({ onProposalAdded }: AddProposalDialogProps) {
     const [totalProfit, setTotalProfitChange] = useState<number>(0);
     const [totalPriceServices, setTotalPriceServices] = useState<number>(0);
     const [addMore, setAddMore] = useState(false);
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
     // Configuração do React Hook Form
     const { control, handleSubmit, reset, watch, setValue, getValues, register, formState: { errors, isSubmitting, isValid } } = useForm<ProposalFormData>({
         resolver: zodResolver(proposalSchema),

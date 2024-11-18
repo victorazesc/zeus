@@ -1,6 +1,7 @@
 // services
 import { APIService } from "./api.service";
 import { API_BASE_URL } from "@/helpers/common.helper";
+import { Service } from "@prisma/client";
 
 export class ServiceService extends APIService {
   constructor() {

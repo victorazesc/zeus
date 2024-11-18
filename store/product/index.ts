@@ -88,12 +88,13 @@ export class ProductRootStore implements IProductRootStore {
  */
 export const useProductStoreWithSWR = (
   store: ProductRootStore,
-  revalidateOnFocus = true
+  revalidateOnFocus = true,
+  revalidateOnMount = true
 ) => {
   const { data, error, isValidating, mutate } = useSWR(
     "products", // Chave única para identificar a consulta
     () => store.fetchProducts(),
-    { revalidateOnFocus, revalidateOnMount: false }
+    { revalidateOnFocus, revalidateOnMount }
   );
 
   const [isLoading, setIsLoading] = React.useState(false);

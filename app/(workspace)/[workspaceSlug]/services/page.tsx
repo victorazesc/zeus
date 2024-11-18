@@ -3,52 +3,42 @@
 import { PageHead } from "@/components/core/page-title";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
 import { observer } from "mobx-react";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useState } from "react";
 import { NextPageWithLayout } from "@/types/types";
 import { DataTable } from "@/components/shared/data-tables";
 import { EmptyStateType } from "@/constants/empty-state";
 
 import { columns } from "@/components/service/columns";
 import { ServicesHeader } from "@/components/headers/workspace-services";
-import { ServiceService } from "@/services/service.service";
 import AppLayout from "../../app-layout";
 import { AddServiceDialog } from "@/components/service/add/dialog";
 import { UpdateServiceDialog } from "@/components/service/update/dialog";
-
-const serviceService = new ServiceService();
+import { useServiceStoreWithSWR } from "@/store/service";
+import { useService } from "@/hooks/stores/use-service";
 
 const WorkspacePage: NextPageWithLayout = observer(() => {
   const { currentWorkspace } = useWorkspace();
   const [searchValue, setSearchValue] = useState(""); // Estado para a busca
-  const [services, setServices] = useState<Partial<Service>[]>([]);
+
+  const { services, isLoading, refreshServices } = useServiceStoreWithSWR(useService());
+
   const [selectedService, setSelectedService] =
     useState<Partial<Service> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Novo estado para loading
+
   // derived values
   const pageTitle = currentWorkspace?.name
     ? `${currentWorkspace?.name} - Dashboard`
     : undefined;
 
-  // Busca inicial de produtos quando a página carrega
-  const fetchServices = async () => {
-    setIsLoading(true); // Ativa o loading antes de buscar os dados
-    const data = await serviceService.getServices();
-    setServices(data);
-    setIsLoading(false); // Desativa o loading após carregar os dados
-  };
-
-  useEffect(() => {
-    fetchServices();
-  }, []);
   return (
     <AppLayout
       header={
         <ServicesHeader
           searchValue={searchValue}
           setSearchValue={setSearchValue}
-          onServiceAdded={fetchServices}
+          onServiceAdded={refreshServices}
         />
       }
     >
@@ -57,7 +47,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         columns={columns({
           setSelectedService,
           setIsModalOpen,
-          onServiceDeleted: () => fetchServices(),
+          onServiceDeleted: () => refreshServices(),
         })}
         data={services}
         searchValue={searchValue}
@@ -73,7 +63,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
           service={selectedService}
           isOpen={isModalOpen}
           onOpenChange={setIsModalOpen}
-          onServiceUpdated={fetchServices}
+          onServiceUpdated={refreshServices}
         />
       )}
 
@@ -81,7 +71,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         isOpen={isAddModalOpen}
         setIsOpen={setIsAddModalOpen}
         showTrigger={false} // Define como false se quiser controlar só pelo pai
-        onServiceAdded={fetchServices}
+        onServiceAdded={refreshServices}
       />
     </AppLayout>
   );

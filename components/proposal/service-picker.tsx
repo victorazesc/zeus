@@ -18,13 +18,9 @@ import {
 } from "@/components/ui/popover";
 import { ServiceService } from "@/services/service.service"; // Importe o serviço correto
 import { Spinner } from "../ui/circular-spinner";
-
-interface Service {
-  id: number;
-  value: string;
-  label: string;
-  price: number;
-}
+import { useServiceStoreWithSWR } from "@/store/service";
+import { useService } from "@/hooks/stores/use-service";
+import { Service } from "@prisma/client";
 
 interface ServiceMultiSelectProps {
   onServicesChange: (
@@ -42,35 +38,12 @@ export function ServiceMultiSelect({
   parentSelectedServices,
 }: ServiceMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
-  const [services, setServices] = React.useState<Service[]>([]); // Estado para armazenar os serviços
+
+  const { services, isLoading } = useServiceStoreWithSWR(useService(), false, false);
+
   const [selectedServices, setSelectedServices] = React.useState<
     { service: Partial<Service>; quantity: number }[]
   >(parentSelectedServices);
-
-  const [isLoading, setIsLoading] = React.useState(true);
-
-  // Buscar serviços quando o componente for montado
-  React.useEffect(() => {
-    async function fetchServices() {
-      setIsLoading(true);
-      try {
-        const response = await serviceService.getServices(); // Chama o ServiceService para obter serviços
-        const formattedServices = response.map((service: any) => ({
-          id: service.id,
-          value: service.id.toString(), // Valor único para seleção
-          label: service.name, // Nome do serviço para exibição
-          price: service.price, // Preço para cálculos
-        }));
-        setServices(formattedServices);
-      } catch (error) {
-        console.error("Erro ao buscar serviços:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchServices();
-  }, []);
 
   // Atualizar o localStorage e informar o componente pai ao alterar os serviços
   React.useEffect(() => {
@@ -86,7 +59,7 @@ export function ServiceMultiSelect({
   // Calcula o total dos serviços selecionados
   const totalPrice = selectedServiceDetails.reduce((acc, service) => {
     const selectedService = selectedServices.find(
-      (item) => item.service.value === service.value
+      (item) => item.service.id === service.id
     );
     return acc + service.price * (selectedService?.quantity || 1);
   }, 0);
@@ -158,8 +131,8 @@ export function ServiceMultiSelect({
                   <CommandGroup>
                     {services.map((service) => (
                       <CommandItem
-                        key={service.value}
-                        value={service.label}
+                        key={service.id}
+                        value={service.name}
                         onSelect={() => toggleServiceSelection(service.id)}
                       >
                         <Check
@@ -171,7 +144,7 @@ export function ServiceMultiSelect({
                               : "opacity-0"
                           }`}
                         />
-                        {service.label}
+                        {service.name}
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -225,7 +198,7 @@ export function ServiceMultiSelect({
                       );
                       return (
                         <tr
-                          key={service.value}
+                          key={service.id}
                           className="border-b border-custom-border-200"
                         >
                           <td className="py-2 px-4">
@@ -242,7 +215,7 @@ export function ServiceMultiSelect({
                               className="w-16 border border-custom-border-200 rounded px-1 text-center bg-custom-background-100"
                             />
                           </td>
-                          <td className="py-2 px-4">{service.label}</td>
+                          <td className="py-2 px-4">{service.name}</td>
                           <td className="py-2 px-4">
                             R${" "}
                             {(
