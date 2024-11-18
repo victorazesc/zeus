@@ -10,6 +10,7 @@ export async function getProducts(request: NextRequest) {
       where: {
         workspaceId: currentUser?.lastWorkspaceId!,
       },
+      orderBy: { id: "desc" },
     });
     return products;
   } catch (error: any) {

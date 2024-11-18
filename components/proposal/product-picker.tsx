@@ -37,7 +37,7 @@ export const ProductMultiSelect = observer(
     onTotalProfitChange,
     parentSelectedProducts,
   }: ProductMultiSelectProps) => {
-    const { products } = useProductStoreWithSWR(useProduct());
+    const { products, isLoading } = useProductStoreWithSWR(useProduct(), false);
     const [open, setOpen] = React.useState(false);
     const [selectedProducts, setSelectedProducts] = React.useState<
       { product: Partial<Product>; quantity: number }[]
@@ -126,108 +126,41 @@ export const ProductMultiSelect = observer(
             <Command>
               <CommandInput placeholder="Buscar produto..." />
               <CommandList>
-                <>
-                  <CommandEmpty>Nenhum produto encontrado</CommandEmpty>
-                  <CommandGroup>
-                    {products.map((product) => (
-                      <CommandItem
-                        key={product.id}
-                        value={product.description}
-                        onSelect={() => toggleProductSelection(product.id)}
-                      >
-                        {selectedProducts.some(
-                          (selected) => selected.product.id === product.id
-                        ) ? (
-                          <SquareCheck className="mr-2 h-6 w-6 opacity-50" />
-                        ) : (
-                          <Square className="mr-2 h-6 w-6 opacity-50" />
-                        )}
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Spinner height="20" width="20" />
+                  </div>
+                ) : (
+                  <>
+                    <CommandEmpty>Nenhum produto encontrado</CommandEmpty>
+                    <CommandGroup>
+                      {products.map((product) => (
+                        <CommandItem
+                          key={product.id}
+                          value={product.description}
+                          onSelect={() => toggleProductSelection(product.id)}
+                        >
+                          {selectedProducts.some(
+                            (selected) => selected.product.id === product.id
+                          ) ? (
+                            <SquareCheck className="mr-2 h-6 w-6 opacity-50" />
+                          ) : (
+                            <Square className="mr-2 h-6 w-6 opacity-50" />
+                          )}
 
-                        {product.description}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </>
+                          {product.description}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
 
         <>
-          {selectedProducts.length > 0 ? (
-            <div
-              className="border border-t-0 rounded shadow-sm -mt-1 border-custom-border-200"
-              style={{
-                height: "300px",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div style={{ flexGrow: 1, overflowY: "auto" }}>
-                <table className="min-w-full text-sm">
-                  <thead className="bg-custom-background-100 text-custom-text-200 sticky top-0">
-                    <tr>
-                      <th className="py-2 px-4 text-left">Qntd</th>
-                      <th className="py-2 px-4 text-left">Descrição</th>
-                      <th className="py-2 px-4 text-left">Valor</th>
-                      <th className="py-2 px-4 text-left">Remover</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedProductDetails.map((product: Product) => {
-                      const selectedProduct = selectedProducts.find(
-                        (item) => item.product.id === product.id
-                      );
-                      return (
-                        <tr
-                          key={product.id}
-                          className="border-b border-custom-border-200 text-custom-text-100"
-                        >
-                          <td className="py-2 px-4">
-                            <input
-                              type="number"
-                              min={1}
-                              value={selectedProduct?.quantity ?? 1}
-                              onChange={(e) =>
-                                updateProductQuantity(
-                                  product.id,
-                                  parseInt(e.target.value, 10) || 1
-                                )
-                              }
-                              className="w-16 border border-custom-border-200 rounded px-1 text-center bg-custom-background-100"
-                            />
-                          </td>
-                          <td className="py-2 px-4">{product.description}</td>
-                          <td className="py-2 px-4">
-                            R${" "}
-                            {(
-                              product.sell_price *
-                              (selectedProduct?.quantity || 1)
-                            ).toFixed(2)}
-                          </td>
-                          <td className="py-2 px-4 text-center">
-                            <button onClick={() => removeProduct(product.id)}>
-                              <X className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="py-2 px-4 text-sm text-right bg-custom-background-100 flex justify-between">
-                <p>Total:</p>
-                <p>R$ {totalPrice.toFixed(2)}</p>
-              </div>
-
-              <div className="py-2 px-4 text-sm text-right bg-custom-background-100 flex justify-between">
-                <p>Lucro Total:</p>
-                <p>R$ {totalProfit.toFixed(2)}</p>
-              </div>
-            </div>
-          ) : (
+          {isLoading ? (
             <div
               className="border border-t-0 rounded shadow-sm -mt-1 border-custom-border-200"
               style={{
@@ -237,9 +170,103 @@ export const ProductMultiSelect = observer(
               }}
             >
               <p className="m-auto text-custom-text-400">
-                Nenhum produto selecionado.
+                <Spinner />
               </p>
             </div>
+          ) : (
+            <>
+              {selectedProducts.length > 0 ? (
+                <div
+                  className="border border-t-0 rounded shadow-sm -mt-1 border-custom-border-200"
+                  style={{
+                    height: "300px",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div style={{ flexGrow: 1, overflowY: "auto" }}>
+                    <table className="min-w-full text-sm">
+                      <thead className="bg-custom-background-100 text-custom-text-200 sticky top-0">
+                        <tr>
+                          <th className="py-2 px-4 text-left">Qntd</th>
+                          <th className="py-2 px-4 text-left">Descrição</th>
+                          <th className="py-2 px-4 text-left">Valor</th>
+                          <th className="py-2 px-4 text-left">Remover</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedProductDetails.map((product: Product) => {
+                          const selectedProduct = selectedProducts.find(
+                            (item) => item.product.id === product.id
+                          );
+                          return (
+                            <tr
+                              key={product.id}
+                              className="border-b border-custom-border-200 text-custom-text-100"
+                            >
+                              <td className="py-2 px-4">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={selectedProduct?.quantity ?? 1}
+                                  onChange={(e) =>
+                                    updateProductQuantity(
+                                      product.id,
+                                      parseInt(e.target.value, 10) || 1
+                                    )
+                                  }
+                                  className="w-16 border border-custom-border-200 rounded px-1 text-center bg-custom-background-100"
+                                />
+                              </td>
+                              <td className="py-2 px-4">
+                                {product.description}
+                              </td>
+                              <td className="py-2 px-4">
+                                R${" "}
+                                {(
+                                  product.sell_price *
+                                  (selectedProduct?.quantity || 1)
+                                ).toFixed(2)}
+                              </td>
+                              <td className="py-2 px-4 text-center">
+                                <button
+                                  onClick={() => removeProduct(product.id)}
+                                >
+                                  <X className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="py-2 px-4 text-sm text-right bg-custom-background-100 flex justify-between">
+                    <p>Total:</p>
+                    <p>R$ {totalPrice.toFixed(2)}</p>
+                  </div>
+
+                  <div className="py-2 px-4 text-sm text-right bg-custom-background-100 flex justify-between">
+                    <p>Lucro Total:</p>
+                    <p>R$ {totalProfit.toFixed(2)}</p>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="border border-t-0 rounded shadow-sm -mt-1 border-custom-border-200"
+                  style={{
+                    height: "300px",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <p className="m-auto text-custom-text-400">
+                    Nenhum produto selecionado.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </>
       </div>

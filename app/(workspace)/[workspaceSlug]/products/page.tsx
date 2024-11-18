@@ -22,32 +22,18 @@ const productService = new ProductService();
 const WorkspacePage: NextPageWithLayout = observer(() => {
   const { currentWorkspace } = useWorkspace();
   const [searchValue, setSearchValue] = useState(""); // Estado para a busca
-  // const [products, setProducts] = useState<Partial<Product>[]>([]);
 
-  const { products, refreshProducts } = useProductStoreWithSWR(useProduct());
-  const { productLoader } = useProduct();
+  const { products, refreshProducts, isLoading } = useProductStoreWithSWR(useProduct());
   const [selectedProduct, setSelectedProduct] =
     useState<Partial<Product> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Estado para loading
 
   // Definindo o título da página
   const pageTitle = currentWorkspace?.name
     ? `${currentWorkspace?.name} - Produtos`
     : undefined;
 
-  // Busca inicial de produtos quando a página carrega
-  // const fetchProducts = async () => {
-  //   setIsLoading(true); // Ativa o loading antes de buscar os dados
-  //   const data = await productService.getProducts();
-  //   setProducts(data);
-  //   setIsLoading(false); // Desativa o loading após carregar os dados
-  // };
-
-  // useEffect(() => {
-  //   fetchProducts();
-  // }, []);
 
   return (
     <AppLayout
@@ -71,7 +57,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         searchValue={searchValue}
         searchFields={["description", "category", "brand", "sku"]}
         dataTableType={EmptyStateType.PRODUCT}
-        isLoading={productLoader}
+        isLoading={isLoading}
         addAction={() => setIsAddModalOpen(true)}
       />
 

@@ -4,6 +4,7 @@ import { ProductService } from "@/services/product.service";
 import { Product } from "@prisma/client";
 import { RootStore } from "../root.store";
 import { useEffect } from "react";
+import React from "react";
 
 export interface IProductRootStore {
   productList: Product[];
@@ -85,30 +86,64 @@ export class ProductRootStore implements IProductRootStore {
 /**
  * Hook para usar SWR com a store
  */
-export const useProductStoreWithSWR = (store: ProductRootStore) => {
-  const { data, error } = useSWR(
+export const useProductStoreWithSWR = (
+  store: ProductRootStore,
+  revalidateOnFocus = true
+) => {
+  const { data, error, isValidating, mutate } = useSWR(
     "products", // Chave única para identificar a consulta
     () => store.fetchProducts(),
-    { revalidateOnFocus: true }
+    { revalidateOnFocus, revalidateOnMount: false }
   );
 
-  // Atualiza a store quando novos dados são carregados
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  // Atualiza a store e o estado de loading com base nos dados retornados
   useEffect(() => {
+    if (isValidating) {
+      setIsLoading(true); // Ativa o loading enquanto valida os dados
+    }
+
     if (data) {
       runInAction(() => {
-        store.setProducts(data);
+        const isNewData =
+          data.length !== store.productList.length ||
+          data.some(
+            (newItem, index) =>
+              JSON.stringify(newItem) !==
+              JSON.stringify(store.productList[index])
+          );
+
+        if (isNewData) {
+          store.setProducts(data); // Atualiza apenas se os dados forem novos
+        }
+        setIsLoading(false); // Desativa o loading
         store.productError = null;
       });
-    } else if (error) {
+    }
+
+    if (error) {
       runInAction(() => {
         store.productError = error;
+        setIsLoading(false); // Desativa o loading em caso de erro
       });
     }
-  }, [data, error, store]);
+  }, [data, error, isValidating, store]);
+
+  // Atualiza o refreshProducts para controlar explicitamente o estado de carregamento
+  const refreshProducts = async () => {
+    setIsLoading(true); // Força o estado de loading para true
+    await mutate(); // Atualiza os dados via SWR
+    setIsLoading(false); // Desativa o estado de loading após completar
+  };
+
+  // Combina isValidating e o estado local isLoading para controle refinado
+  const effectiveLoading = isValidating || isLoading;
 
   return {
     products: store.productList,
+    isLoading: effectiveLoading, // Estado de loading combinado
     error: store.productError,
-    refreshProducts: () => mutate("products"), // Exponha o método mutate
+    refreshProducts,
   };
 };
