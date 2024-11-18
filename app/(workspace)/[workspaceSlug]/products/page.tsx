@@ -14,13 +14,18 @@ import { UpdateProductDialog } from "@/components/product/update/dialog";
 import { AddProductDialog } from "@/components/product/add/dialog";
 import AppLayout from "../../app-layout";
 import { Product } from "@prisma/client";
+import { useProductStoreWithSWR } from "@/store/product";
+import { useProduct } from "@/hooks/stores/use-product";
 
 const productService = new ProductService();
 
 const WorkspacePage: NextPageWithLayout = observer(() => {
   const { currentWorkspace } = useWorkspace();
   const [searchValue, setSearchValue] = useState(""); // Estado para a busca
-  const [products, setProducts] = useState<Partial<Product>[]>([]);
+  // const [products, setProducts] = useState<Partial<Product>[]>([]);
+
+  const { products, refreshProducts } = useProductStoreWithSWR(useProduct());
+  const { productLoader } = useProduct();
   const [selectedProduct, setSelectedProduct] =
     useState<Partial<Product> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,16 +38,16 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
     : undefined;
 
   // Busca inicial de produtos quando a página carrega
-  const fetchProducts = async () => {
-    setIsLoading(true); // Ativa o loading antes de buscar os dados
-    const data = await productService.getProducts();
-    setProducts(data);
-    setIsLoading(false); // Desativa o loading após carregar os dados
-  };
+  // const fetchProducts = async () => {
+  //   setIsLoading(true); // Ativa o loading antes de buscar os dados
+  //   const data = await productService.getProducts();
+  //   setProducts(data);
+  //   setIsLoading(false); // Desativa o loading após carregar os dados
+  // };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  // useEffect(() => {
+  //   fetchProducts();
+  // }, []);
 
   return (
     <AppLayout
@@ -50,7 +55,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         <ProductsHeader
           searchValue={searchValue}
           setSearchValue={setSearchValue}
-          onProductAdded={fetchProducts} // Passa a função de atualização
+          onProductAdded={refreshProducts} // Passa a função de atualização
         />
       }
     >
@@ -60,13 +65,13 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         columns={columns({
           setSelectedProduct,
           setIsModalOpen,
-          onProductDeleted: fetchProducts,
+          onProductDeleted: refreshProducts,
         })} // Passa as funções para as colunas
         data={products}
         searchValue={searchValue}
         searchFields={["description", "category", "brand", "sku"]}
         dataTableType={EmptyStateType.PRODUCT}
-        isLoading={isLoading}
+        isLoading={productLoader}
         addAction={() => setIsAddModalOpen(true)}
       />
 
@@ -77,14 +82,14 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
           product={selectedProduct}
           isOpen={isModalOpen}
           onOpenChange={setIsModalOpen}
-          onProductUpdated={fetchProducts}
+          onProductUpdated={refreshProducts}
         />
       )}
       <AddProductDialog
         isOpen={isAddModalOpen}
         setIsOpen={setIsAddModalOpen}
         showTrigger={false} // Controlado apenas pelo pai
-        onProductAdded={fetchProducts}
+        onProductAdded={refreshProducts}
       />
     </AppLayout>
   );

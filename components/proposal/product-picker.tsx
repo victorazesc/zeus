@@ -16,157 +16,123 @@ import {
 } from "@/components/ui/popover";
 import { ProductService } from "@/services/product.service";
 import { Spinner } from "../ui/circular-spinner";
-
-interface Product {
-  id: number;
-  value: string;
-  label: string;
-  price: number;
-  costPrice: number; // Adicionado para cálculo do lucro
-}
+import { useProduct } from "@/hooks/stores/use-product";
+import { observer } from "mobx-react-lite";
+import type { Product } from "@prisma/client";
+import { useProductStoreWithSWR } from "@/store/product";
 
 interface ProductMultiSelectProps {
   onProductsChange: (
     products: { product: Partial<Product>; quantity: number }[]
   ) => void;
   onTotalPriceChange: (total: number) => void;
-  onTotalProfitChange: (total: number) => void; // Novo callback para lucro total
+  onTotalProfitChange: (total: number) => void;
   parentSelectedProducts: { product: Partial<Product>; quantity: number }[];
 }
 
-const productService = new ProductService();
+export const ProductMultiSelect = observer(
+  ({
+    onProductsChange,
+    onTotalPriceChange,
+    onTotalProfitChange,
+    parentSelectedProducts,
+  }: ProductMultiSelectProps) => {
+    const { products } = useProductStoreWithSWR(useProduct());
+    const [open, setOpen] = React.useState(false);
+    const [selectedProducts, setSelectedProducts] = React.useState<
+      { product: Partial<Product>; quantity: number }[]
+    >(parentSelectedProducts);
 
-export function ProductMultiSelect({
-  onProductsChange,
-  onTotalPriceChange,
-  onTotalProfitChange,
-  parentSelectedProducts,
-}: ProductMultiSelectProps) {
-  const [open, setOpen] = React.useState(false);
-  const [products, setProducts] = React.useState<Product[]>([]); // Estado para armazenar os produtos
-  const [selectedProducts, setSelectedProducts] = React.useState<
-    { product: Partial<Product>; quantity: number }[]
-  >(parentSelectedProducts);
+    React.useEffect(() => {
+      localStorage.setItem(
+        "selectedProducts",
+        JSON.stringify(selectedProducts)
+      );
+      onProductsChange(selectedProducts);
+    }, [selectedProducts, onProductsChange]);
 
-  const [isLoading, setIsLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    async function fetchProducts() {
-      try {
-        setIsLoading(true);
-        const response = await productService.getProducts();
-        const formattedProducts = response.map((product: any) => ({
-          id: product.id,
-          value: product.id.toString(),
-          label: product.description,
-          price: product.sell_price,
-          costPrice: product.cost_price, // Adiciona o preço de custo
-        }));
-        setProducts(formattedProducts);
-      } catch (error) {
-        console.error("Erro ao buscar produtos:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchProducts();
-  }, []);
-
-  React.useEffect(() => {
-    localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-    onProductsChange(selectedProducts);
-  }, [selectedProducts, onProductsChange]);
-
-  // Filtra os detalhes dos produtos selecionados
-  const selectedProductDetails = products.filter((product) =>
-    selectedProducts.some((selected) => selected.product.id === product.id)
-  );
-
-  // Calcula o total dos produtos selecionados
-  const totalPrice = selectedProductDetails.reduce((acc, product) => {
-    const selectedProduct = selectedProducts.find(
-      (item) => item.product.id === product.id
+    // Filtra os produtos selecionados
+    const selectedProductDetails = products.filter((product) =>
+      selectedProducts.some((selected) => selected.product.id === product.id)
     );
-    return acc + product.price * (selectedProduct?.quantity || 1);
-  }, 0);
 
-  // Calcula o total de lucro dos produtos selecionados
-  const totalProfit = selectedProductDetails.reduce((acc, product) => {
-    const selectedProduct = selectedProducts.find(
-      (item) => item.product.id === product.id
-    );
-    const profitPerUnit = product.price - product.costPrice; // Lucro unitário
-    return acc + profitPerUnit * (selectedProduct?.quantity || 1);
-  }, 0);
+    // Calcula o total de preços
+    const totalPrice = selectedProductDetails.reduce((acc, product) => {
+      const selectedProduct = selectedProducts.find(
+        (item) => item.product.id === product.id
+      );
+      return acc + product.sell_price * (selectedProduct?.quantity || 1);
+    }, 0);
 
-  React.useEffect(() => {
-    onTotalPriceChange(totalPrice);
-    onTotalProfitChange(totalProfit);
-  }, [totalPrice, totalProfit, onTotalPriceChange, onTotalProfitChange]);
+    // Calcula o total de lucros
+    const totalProfit = selectedProductDetails.reduce((acc, product) => {
+      const selectedProduct = selectedProducts.find(
+        (item) => item.product.id === product.id
+      );
+      const profitPerUnit = product.sell_price - product.cost_price; // Lucro unitário
+      return acc + profitPerUnit * (selectedProduct?.quantity || 1);
+    }, 0);
 
-  const toggleProductSelection = (productValue: number) => {
-    setSelectedProducts((prev) =>
-      prev.some((item) => item.product.id === productValue)
-        ? prev.filter((item) => item.product.id !== productValue)
-        : [
-            ...prev,
-            {
-              product: products.find((p) => p.id === productValue)!,
-              quantity: 1,
-            },
-          ]
-    );
-  };
+    React.useEffect(() => {
+      onTotalPriceChange(totalPrice);
+      onTotalProfitChange(totalProfit);
+    }, [totalPrice, totalProfit, onTotalPriceChange, onTotalProfitChange]);
 
-  const updateProductQuantity = (productValue: number, quantity: number) => {
-    setSelectedProducts((prev) =>
-      prev.map((item) =>
-        item.product.id === productValue ? { ...item, quantity } : item
-      )
-    );
-  };
+    const toggleProductSelection = (productValue: number) => {
+      setSelectedProducts((prev) =>
+        prev.some((item) => item.product.id === productValue)
+          ? prev.filter((item) => item.product.id !== productValue)
+          : [
+              ...prev,
+              {
+                product: products.find((p) => p.id === productValue)!,
+                quantity: 1,
+              },
+            ]
+      );
+    };
 
-  const removeProduct = (productValue: number) => {
-    setSelectedProducts((prev) =>
-      prev.filter((item) => item.product.id !== productValue)
-    );
-  };
+    const updateProductQuantity = (productValue: number, quantity: number) => {
+      setSelectedProducts((prev) =>
+        prev.map((item) =>
+          item.product.id === productValue ? { ...item, quantity } : item
+        )
+      );
+    };
 
-  return (
-    <div className="w-full">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between rounded-b-none"
-          >
-            {selectedProducts.length > 0
-              ? `${selectedProducts.length} produto(s) selecionado(s)`
-              : "Selecione os produtos..."}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[400px] p-0">
-          <Command>
-            <CommandInput
-              disabled={isLoading}
-              placeholder="Buscar produto..."
-            />
-            <CommandList>
-              {isLoading ? (
-                <div className="flex items-center justify-center py-6">
-                  <Spinner height="20" width="20" />
-                </div>
-              ) : (
+    const removeProduct = (productValue: number) => {
+      setSelectedProducts((prev) =>
+        prev.filter((item) => item.product.id !== productValue)
+      );
+    };
+
+    return (
+      <div className="w-full">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between rounded-b-none"
+            >
+              {selectedProducts.length > 0
+                ? `${selectedProducts.length} produto(s) selecionado(s)`
+                : "Selecione os produtos..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[400px] p-0">
+            <Command>
+              <CommandInput placeholder="Buscar produto..." />
+              <CommandList>
                 <>
                   <CommandEmpty>Nenhum produto encontrado</CommandEmpty>
                   <CommandGroup>
                     {products.map((product) => (
                       <CommandItem
-                        key={product.value}
-                        value={product.label}
+                        key={product.id}
+                        value={product.description}
                         onSelect={() => toggleProductSelection(product.id)}
                       >
                         {selectedProducts.some(
@@ -177,30 +143,16 @@ export function ProductMultiSelect({
                           <Square className="mr-2 h-6 w-6 opacity-50" />
                         )}
 
-                        {product.label}
+                        {product.description}
                       </CommandItem>
                     ))}
                   </CommandGroup>
                 </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-      {isLoading ? (
-        <div
-          className="border border-t-0 rounded shadow-sm -mt-1 border-custom-border-200"
-          style={{
-            height: "300px",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <p className="m-auto text-custom-text-400">
-            <Spinner/>
-          </p>
-        </div>
-      ) : (
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
         <>
           {selectedProducts.length > 0 ? (
             <div
@@ -228,7 +180,7 @@ export function ProductMultiSelect({
                       );
                       return (
                         <tr
-                          key={product.value}
+                          key={product.id}
                           className="border-b border-custom-border-200 text-custom-text-100"
                         >
                           <td className="py-2 px-4">
@@ -245,11 +197,12 @@ export function ProductMultiSelect({
                               className="w-16 border border-custom-border-200 rounded px-1 text-center bg-custom-background-100"
                             />
                           </td>
-                          <td className="py-2 px-4">{product.label}</td>
+                          <td className="py-2 px-4">{product.description}</td>
                           <td className="py-2 px-4">
                             R${" "}
                             {(
-                              product.price * (selectedProduct?.quantity || 1)
+                              product.sell_price *
+                              (selectedProduct?.quantity || 1)
                             ).toFixed(2)}
                           </td>
                           <td className="py-2 px-4 text-center">
@@ -289,7 +242,7 @@ export function ProductMultiSelect({
             </div>
           )}
         </>
-      )}
-    </div>
-  );
-}
+      </div>
+    );
+  }
+);
