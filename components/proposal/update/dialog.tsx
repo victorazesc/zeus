@@ -1,5 +1,10 @@
 "use client";
 
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+
 import { DatePicker } from "@/components/shared/date-picker";
 import { StatusPicker } from "@/components/shared/status-picker";
 import { UserPicker } from "@/components/shared/user-picker";
@@ -12,143 +17,229 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useEffect } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
-import { ProductMultiSelect } from "../product-picker";
-import { ServiceMultiSelect } from "../service-picker";
 import { Label } from "@/components/ui/label";
 import { MonetaryInput } from "@/components/ui/input-monetary";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ProductMultiSelect } from "../product-picker";
+import { ServiceMultiSelect } from "../service-picker";
+import { toast } from "sonner";
+
+import { ProposalService } from "@/services/proposal.service";
+import { CustomerService } from "@/services/customer.service";
+import { UserService } from "@/services/user.service";
+import { Customer, User } from "@prisma/client";
+import { Status } from "@/constants/proposal-status";
+
+const proposalService = new ProposalService();
+const customerService = new CustomerService();
+const userService = new UserService();
+
+// Esquema de validação
+const proposalSchema = z.object({
+  description: z.string().min(1, "Descrição é obrigatória"),
+  technicalReport: z.string().optional(),
+  discount: z.number().min(0, "O desconto deve ser positivo").optional(),
+  initialDate: z.date(),
+  finalDate: z.date(),
+  value: z.number().min(0, "O valor deve ser positivo"),
+  customer: z
+    .object({
+      id: z.number(),
+      name: z.string().nullable(),
+      email: z.string().optional(),
+    })
+    .nullable(),
+  user: z
+    .object({
+      id: z.number(),
+      name: z.string().nullable(),
+      email: z.string().optional(),
+    })
+    .nullable(),
+  status: z.string().min(1, "Status é obrigatório"),
+  products: z.array(z.any()).optional(),
+  services: z.array(z.any()).optional(),
+});
+
+type ProposalFormData = z.infer<typeof proposalSchema>;
 
 interface Props {
-  proposal: Partial<Proposal>;
+  proposal: Partial<ProposalFormData>;
   isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void; // Função para controlar a abertura e fechamento
+  onOpenChange: (isOpen: boolean) => void;
+  onProposalUpdated?: () => void;
 }
 
-export function UpdateProposalDialog({ proposal, isOpen, onOpenChange }: Props) {
-  const [discount, setDiscount] = useState<number>(proposal.discount || 0); // Inicializar com 0 para evitar `undefined` ou `null`
-  const [selectedProducts, setSelectedProducts] = useState<{ product: Partial<Product>; quantity: number }[]>(proposal.products || []);
-  const [selectedServices, setSelectedServices] = useState<{ service: Partial<Service>; quantity: number }[]>(proposal.services || []);
+export function UpdateProposalDialog({
+  proposal,
+  isOpen,
+  onOpenChange,
+  onProposalUpdated,
+}: Props) {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [totalProfit, setTotalProfitChange] = useState<number>(0);
   const [totalPriceServices, setTotalPriceServices] = useState<number>(0);
 
-  // Atualiza os preços totais conforme os produtos e serviços são modificados
-  useEffect(() => {
-    const productsTotal = selectedProducts.reduce((sum, item) => {
-      return sum + (item.product.sell_price || 0) * item.quantity;
-    }, 0);
-    setTotalPrice(productsTotal);
-  }, [selectedProducts]);
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    register,
+    getValues,
+    formState: { errors, isSubmitting },
+  } = useForm<ProposalFormData>({
+    resolver: zodResolver(proposalSchema),
+    defaultValues: proposal,
+  });
 
-  useEffect(() => {
-    const servicesTotal = selectedServices.reduce((sum, item) => {
-      return sum + (item.service.price || 0) * item.quantity;
-    }, 0);
-    setTotalPriceServices(servicesTotal);
-  }, [selectedServices]);
+  const discount = getValues("discount") || 0;
 
-  // Cálculo do valor total considerando os descontos
   const totalProposalValue = totalPrice + totalPriceServices - discount;
+  const totalEarn = totalProfit + totalPriceServices - discount;
 
-  const users = [
-    {
-      id: 14,
-      name: "Victor Henrique de Azevedo",
-      email: "victorazesc@gmail.com",
-      username: "victorazesc",
-      avatar:
-        "https://plane-ns-saks.s3.amazonaws.com/user-7e779a686a0c4b57b0bd2029f54d597f-6291E04A-E9D9-463E-AAEB-4E917166F658.jpeg",
-    },
-    {
-      id: 2,
-      name: "Ana Caroline Sardá Vargas",
-      email: "ana.sarda@gmail.com",
-      username: "ana.sarda",
-      avatar:
-        "https://plane-ns-saks.s3.amazonaws.com/user-e7aa445112af4acbb5e5d5d6f116c694-2AF23626-D947-4BDE-A3A7-4F84B5DB6552.jpeg",
-    },
-  ];
-  const customers = [
-    {
-      id: 1,
-      name: "Jane Doe",
-      email: "janedoe@gmail.com",
-      username: "janedoe",
-      avatar: "",
-    },
-    {
-      id: 2,
-      name: "John Doe",
-      email: "john.doe@gmail.com",
-      username: "john.doe",
-      avatar: "",
-    },
-  ];
+  useEffect(() => {
+    if (isOpen) {
+      const fetchData = async () => {
+        const [customersData, usersData] = await Promise.all([
+          customerService.getCustomers(),
+          userService.getUsers(),
+        ]);
+        setCustomers(customersData);
+        setUsers(usersData);
+      };
+      fetchData();
+    }
+  }, [isOpen]);
+
+  const onSubmit = async (data: ProposalFormData) => {
+    try {
+      const payload = {
+        ...data,
+        value: totalProposalValue,
+        earn: totalEarn,
+      };
+      console.log(payload)
+
+      // await proposalService.updateProposal(proposal.id, payload);
+      toast.success("Proposta atualizada com sucesso!");
+      onProposalUpdated?.();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error("Erro ao atualizar proposta.", {
+        description:
+          error?.message ?? "Houve um problema ao atualizar a proposta.",
+      });
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[1200px]">
-        <DialogHeader>
-          <DialogTitle>Editar Proposta</DialogTitle>
-        </DialogHeader>
-        <div className="flex gap-2">
-          <DatePicker label="Data Início" value={proposal.initialDate} />
-          <DatePicker label="Data Fim" value={proposal.finalDate} />
-          <StatusPicker value={proposal.status} />
-          <UserPicker users={users} value={proposal.user} label="Responsável" />
-          <UserPicker users={customers} value={proposal.customer} label="Cliente" />
-        </div>
-        <div className="grid grid-cols-2 gap-4 py-4">
-          <div className="flex gap-2 flex-col">
-            <div className="col-span-2">
-              <Textarea placeholder="Descrição" value={proposal.description} className="min-h-[150px]" rows={3} />
-            </div>
-            <div className="col-span-2">
-              <Textarea placeholder="Laudo técnico" value={proposal.technicalReport} rows={3} />
-            </div>
-            <div className="col-span-2 flex items-center gap-4">
-              <Label>Desconto:</Label>
-              <MonetaryInput value={discount} onValueChange={(e) => setDiscount(Number(e) || 0)} />
-            </div>
-            <div className="col-span-2 flex flex-col items-start gap-2">
-              <p><strong>Valor total da proposta: R$ {totalProposalValue.toFixed(2)}</strong></p>
-            </div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogHeader>
+            <DialogTitle>Editar Proposta</DialogTitle>
+          </DialogHeader>
+          <div className="flex gap-2">
+            <Controller
+              control={control}
+              name="initialDate"
+              render={({ field }) => <DatePicker label="Data Início" {...field} />}
+            />
+            <Controller
+              control={control}
+              name="finalDate"
+              render={({ field }) => <DatePicker label="Data Fim" {...field} />}
+            />
+            <Controller
+              control={control}
+              name="status"
+              render={({ field }) => (
+                <StatusPicker {...field} value={getValues("status") as Status} />
+              )}
+            />
+            <Controller
+              control={control}
+              name="user"
+              render={({ field }) => (
+                <UserPicker
+                  users={users}
+                  label="Responsável"
+                  {...field}
+                  value={getValues("user")}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="customer"
+              render={({ field }) => (
+                <UserPicker
+                  users={customers}
+                  label="Cliente"
+                  {...field}
+                  value={getValues("customer")}
+                />
+              )}
+            />
           </div>
-          <div>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div>
+              <Textarea
+                placeholder="Descrição"
+                {...register("description")}
+              />
+              <Textarea
+                placeholder="Laudo técnico"
+                {...register("technicalReport")}
+              />
+              <div className="flex items-center gap-4">
+                <Label>Desconto:</Label>
+                <MonetaryInput
+                  value={discount}
+                  onValueChange={(value) => setValue("discount", Number(value))}
+                />
+              </div>
+              <p>Valor total: R$ {totalProposalValue.toFixed(2)}</p>
+            </div>
             <Tabs defaultValue="products" className="w-full">
-              <TabsList className="bg-custom-background-90 p-1 flex gap-4 justify-evenly rounded-lg mb-2">
-                <TabsTrigger className="w-full p-1 rounded-md" value="products">
-                  Produtos
-                </TabsTrigger>
-                <TabsTrigger className="w-full p-1 rounded-md" value="services">
-                  Serviços
-                </TabsTrigger>
+              <TabsList>
+                <TabsTrigger value="products">Produtos</TabsTrigger>
+                <TabsTrigger value="services">Serviços</TabsTrigger>
               </TabsList>
               <TabsContent value="products">
                 <ProductMultiSelect
-                  onProductsChange={setSelectedProducts}
+                  onProductsChange={(products) => setValue("products", products)}
                   onTotalPriceChange={setTotalPrice}
-                  parentSelectedProducts={selectedProducts}
+                  onTotalProfitChange={setTotalProfitChange}
+                  parentSelectedProducts={getValues("products") || []}
                 />
               </TabsContent>
               <TabsContent value="services">
                 <ServiceMultiSelect
-                  onServicesChange={setSelectedServices}
+                  onServicesChange={(services) =>
+                    setValue("services", services)
+                  }
                   onTotalPriceChange={setTotalPriceServices}
-                  parentSelectedServices={selectedServices}
+                  parentSelectedServices={getValues("services") || []}
                 />
               </TabsContent>
             </Tabs>
           </div>
-        </div>
-        <DialogFooter className="justify-between">
-          <Button type="button" variant="outline" size={"sm"} onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button size="sm" type="submit">
-            Atualizar Proposta
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button size="sm" type="submit" disabled={isSubmitting}>
+              Atualizar Proposta
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

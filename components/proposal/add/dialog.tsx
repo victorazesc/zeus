@@ -66,9 +66,10 @@ export function AddProposalDialog({ onProposalAdded }: AddProposalDialogProps) {
     const [customers, setCustomers] = useState<Customer[]>([]); // Tipagem correta para Customer[]
     const [users, setUsers] = useState<User[]>([]); // Tipagem correta para User[]
     const [totalPrice, setTotalPrice] = useState<number>(0);
+    const [totalProfit, setTotalProfitChange] = useState<number>(0);
     const [totalPriceServices, setTotalPriceServices] = useState<number>(0);
     const [addMore, setAddMore] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
     // Configuração do React Hook Form
     const { control, handleSubmit, reset, watch, setValue, getValues, register, formState: { errors, isSubmitting, isValid } } = useForm<ProposalFormData>({
         resolver: zodResolver(proposalSchema),
@@ -90,6 +91,7 @@ export function AddProposalDialog({ onProposalAdded }: AddProposalDialogProps) {
     const discount = watch("discount");
 
     const totalProposalValue = totalPrice + totalPriceServices - (discount || 0);
+    const totalEarn = totalProfit + totalPriceServices - (discount || 0)
 
     // Buscar clientes e usuários quando o diálogo é aberto
     useEffect(() => {
@@ -111,6 +113,7 @@ export function AddProposalDialog({ onProposalAdded }: AddProposalDialogProps) {
         const payload = {
             ...data,
             value: totalProposalValue,
+            earn: totalEarn
         };
         await proposalService
             .createProposal(payload)
@@ -143,7 +146,7 @@ export function AddProposalDialog({ onProposalAdded }: AddProposalDialogProps) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[1200px]">
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <DialogHeader>
+                    <DialogHeader className="mb-6">
                         <DialogTitle>Nova Proposta</DialogTitle>
                     </DialogHeader>
                     <div className="flex gap-2">
@@ -189,7 +192,7 @@ export function AddProposalDialog({ onProposalAdded }: AddProposalDialogProps) {
                                 <TabsTrigger className="w-full" value="services">Serviços</TabsTrigger>
                             </TabsList>
                             <TabsContent value="products">
-                                <ProductMultiSelect onProductsChange={(products) => setValue("products", products)} onTotalPriceChange={setTotalPrice} parentSelectedProducts={getValues("products") || []} />
+                                <ProductMultiSelect onProductsChange={(products) => setValue("products", products)} onTotalPriceChange={setTotalPrice} parentSelectedProducts={getValues("products") || []} onTotalProfitChange={setTotalProfitChange} />
                             </TabsContent>
                             <TabsContent value="services">
                                 <ServiceMultiSelect onServicesChange={(services) => setValue("services", services)} onTotalPriceChange={setTotalPriceServices} parentSelectedServices={getValues("services") || []} />

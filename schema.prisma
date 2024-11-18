@@ -29,6 +29,7 @@ model User {
     onboardingStep   Json        @default("{\"profile_complete\":false,\"workspace_create\":false,\"workspace_information\":false,\"workspace_join\":false}")
     createdAt        DateTime    @default(now()) @db.Timestamp(6)
     workspaces       Workspace[]
+    Proposal         Proposal[]
 }
 
 model Address {
@@ -68,6 +69,7 @@ model Customer {
     supplier       Boolean    @default(false)
     createdAt      DateTime   @default(now())
     updatedAt      DateTime   @updatedAt
+    Proposal       Proposal[]
 
     @@unique([email, workspaceId])
 }
@@ -92,30 +94,71 @@ model Workspace {
     Customer Customer[]
     services Service[]
     products Product[]
+    Proposal Proposal[]
 }
 
 model Service {
-    id          Int       @id @default(autoincrement())
-    name        String
-    description String
-    price       Float
-    duration    String? // Campo opcional
-    category    String? // Campo opcional
-    workspaceId Int
-    Workspace   Workspace @relation(fields: [workspaceId], references: [id])
+    id              Int               @id @default(autoincrement())
+    name            String
+    description     String
+    price           Float
+    duration        String? // Campo opcional
+    category        String? // Campo opcional
+    workspaceId     Int
+    Workspace       Workspace         @relation(fields: [workspaceId], references: [id])
+    ProposalService ProposalService[]
 }
 
 model Product {
-    id           Int       @id @default(autoincrement())
-    description  String
-    category     String
-    brand        String
-    sku          String
-    stock        Int       @default(0)
-    cost_price   Float
-    sell_price   Float
-    earn         Float? // Lucro opcional
-    profitMargin Float? // Margem de lucro opcional
-    workspaceId  Int // Relacionamento com Workspace
-    Workspace    Workspace @relation(fields: [workspaceId], references: [id])
+    id              Int               @id @default(autoincrement())
+    description     String
+    category        String
+    brand           String
+    sku             String
+    stock           Int               @default(0)
+    cost_price      Float
+    sell_price      Float
+    earn            Float? // Lucro opcional
+    profitMargin    Float? // Margem de lucro opcional
+    workspaceId     Int // Relacionamento com Workspace
+    Workspace       Workspace         @relation(fields: [workspaceId], references: [id])
+    ProposalProduct ProposalProduct[]
+}
+
+model Proposal {
+    id              Int               @id @default(autoincrement())
+    description     String
+    technicalReport String
+    discount        Float
+    status          String
+    initialDate     DateTime
+    finalDate       DateTime
+    value           Float
+    earn            Float
+    customerId      Int
+    customer        Customer          @relation(fields: [customerId], references: [id])
+    workspaceId     Int // Relacionamento com Workspace
+    Workspace       Workspace         @relation(fields: [workspaceId], references: [id])
+    products        ProposalProduct[]
+    services        ProposalService[]
+    User            User?             @relation(fields: [userId], references: [id])
+    userId          Int?
+}
+
+model ProposalProduct {
+    id         Int      @id @default(autoincrement())
+    quantity   Int
+    proposalId Int
+    proposal   Proposal @relation(fields: [proposalId], references: [id])
+    productId  Int
+    product    Product  @relation(fields: [productId], references: [id])
+}
+
+model ProposalService {
+    id         Int      @id @default(autoincrement())
+    quantity   Int
+    proposalId Int
+    proposal   Proposal @relation(fields: [proposalId], references: [id])
+    serviceId  Int
+    service    Service  @relation(fields: [serviceId], references: [id])
 }

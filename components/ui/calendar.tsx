@@ -43,8 +43,8 @@ function Calendar({
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-custom-background-90 text-custom-text-200 hover:bg-custom-background-90 hover:text-custom-text-200 focus:bg-custom-background-90 focus:text-custom-text-200 dark:bg-custom-background-90 dark:text-custom-text-300 dark:hover:bg-custom-background-90 dark:hover:text-custom-text-300 dark:focus:bg-custom-background-90 dark:focus:text-custom-text-300",
-        day_today: "bg-custom-background-80 text-custom-text-300 dark:bg-slate-800 dark:text-custom-text-200",
+          "bg-custom-background-80 text-custom-text-200 hover:bg-custom-background-80 hover:text-custom-text-200 focus:bg-custom-background-80 focus:text-custom-text-200 dark:bg-custom-background-80 dark:text-custom-text-300 dark:hover:bg-custom-background-80 dark:hover:text-custom-text-300 dark:focus:bg-custom-background-80 dark:focus:text-custom-text-300",
+        day_today: "bg-custom-background-90 text-custom-text-300 dark:bg-slate-800 dark:text-custom-text-200",
         day_outside:
           "day-outside text-custom-text-300 opacity-50 aria-selected:bg-slate-100/50 aria-selected:text-custom-text-300 aria-selected:opacity-30 dark:text-slate-400 dark:aria-selected:bg-slate-800/50 dark:aria-selected:text-slate-400",
         day_disabled: "text-custom-text-300 opacity-50 dark:text-slate-400",
