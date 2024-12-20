@@ -19,7 +19,7 @@ export async function getProposals(request: NextRequest) {
       include: {
         customer: true,
         Workspace: true,
-        User: true,
+        user: true,
         products: {
           include: { product: true },
         },
@@ -51,7 +51,7 @@ export async function getProposalById(request: NextRequest, id: number) {
       include: {
         customer: true,
         Workspace: true,
-        User: true,
+        user: true,
         products: {
           include: { product: true },
         },
@@ -98,7 +98,7 @@ export async function createProposal(request: NextRequest, data: any) {
             id: customer.id,
           },
         },
-        User: {
+        user: {
           connect: {
             id: user.id,
           },
@@ -107,19 +107,26 @@ export async function createProposal(request: NextRequest, data: any) {
           create: products.map((item: any) => ({
             quantity: item.quantity,
             productId: item.product.id,
+            description: item.product.description,
+            cost_price: item.product.cost_price,
+            sell_price: item.product.sell_price,
+            earn: item.product.earn,
+            profitMargin: item.product.profitMargin,
           })),
         },
         services: {
           create: services.map((item: any) => ({
             quantity: item.quantity,
             serviceId: item.service.id,
+            description: item.service.description,
+            price: item.service.price,
           })),
         },
       },
       include: {
         customer: true,
         Workspace: true,
-        User: true,
+        user: true,
         products: {
           include: { product: true },
         },
@@ -174,7 +181,7 @@ export async function updateProposal(
       include: {
         customer: true,
         Workspace: true,
-        User: true,
+        user: true,
         products: {
           include: { product: true },
         },

@@ -35,7 +35,7 @@ type StatusInput = {
 }
 
 
-export function StatusPicker({ value = Status.OPEN }: { value?: Status }) {
+export function StatusPicker({ value = Status.OPEN, onChange  }: { value?: Status, onChange: (status: string) => void; }) {
     const [open, setOpen] = React.useState(false)
     const [selectedStatus, setSelectedStatus] = React.useState<StatusInput | null>(
         value ? PROPOSAL_STATUS[value] : PROPOSAL_STATUS['open']
@@ -71,6 +71,7 @@ export function StatusPicker({ value = Status.OPEN }: { value?: Status }) {
                                         key={status.key}
                                         value={status.key}
                                         onSelect={(value) => {
+                                            onChange(value),
                                             setSelectedStatus(
                                                 status ||
                                                 null
