@@ -12,6 +12,7 @@ import { UpdateProposalDialog } from "@/components/proposal/update/dialog";
 import { ProposalService } from "@/services/proposal.service";
 import { useWorkspace } from "@/hooks/stores/use-workspace";
 import AppLayout from "../../app-layout";
+import { AddProposalDialog } from "@/components/proposal/add/dialog";
 
 const proposalService = new ProposalService();
 
@@ -21,6 +22,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   const [selectedProposal, setSelectedProposal] =
     useState<Partial<Proposal> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [proposals, setProposals] = useState<Partial<Proposal>[]>([]);
   // derived values
   const pageTitle = currentWorkspace?.name
@@ -53,7 +55,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         data={proposals}
         searchValue={searchValue}
         searchFields={["customer.name", "user.name", "status"]}
-        dataTableType={EmptyStateType.SERVICE}
+        dataTableType={EmptyStateType.PROPOSAL}
         rowProps={(row) => ({
           className: "cursor-pointer hover:bg-gray-900",
           onClick: () => {
@@ -70,6 +72,12 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
           onOpenChange={setIsModalOpen}
         />
       )}
+      <AddProposalDialog
+        isOpen={isAddModalOpen}
+        setIsOpen={setIsAddModalOpen}
+        showTrigger={false} // Controlado apenas pelo pai
+        onProposalAdded={fetchProposals}
+      />
     </AppLayout>
   );
 });

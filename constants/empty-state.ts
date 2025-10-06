@@ -1,4 +1,3 @@
-
 export interface EmptyStateDetails {
   key: EmptyStateType;
   title?: string;
@@ -27,6 +26,7 @@ export enum EmptyStateType {
   CUSTOMER = "customer",
   PRODUCT = "product",
   SERVICE = "service",
+  PROPOSAL = "proposal",
 }
 
 const emptyStateDetails = {
@@ -67,7 +67,18 @@ const emptyStateDetails = {
 
     accessType: "workspace",
   },
+  [EmptyStateType.PROPOSAL]: {
+    key: EmptyStateType.PROPOSAL,
+    title: "Nenhuma proposta foi encontrada",
+    description: "você não possui nenhuma proposta em sua base de dados.",
+    path: "/empty-state/empty-service",
+    primaryButton: {
+      text: "Adicionar uma nova proposta",
+    },
 
+    accessType: "workspace",
+  },
 } as const;
 
-export const EMPTY_STATE_DETAILS: Record<EmptyStateType, EmptyStateDetails> = emptyStateDetails;
+export const EMPTY_STATE_DETAILS: Record<EmptyStateType, EmptyStateDetails> =
+  emptyStateDetails;

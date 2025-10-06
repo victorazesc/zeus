@@ -167,7 +167,7 @@ export function UpdateProposalDialog({
                   users={users}
                   label="Responsável"
                   {...field}
-                  value={getValues("user")}
+                  value={field.value ?? undefined}
                 />
               )}
             />
@@ -179,7 +179,7 @@ export function UpdateProposalDialog({
                   users={customers}
                   label="Cliente"
                   {...field}
-                  value={getValues("customer")}
+                  value={field.value ?? undefined}
                 />
               )}
             />
