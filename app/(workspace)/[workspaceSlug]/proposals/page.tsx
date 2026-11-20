@@ -20,10 +20,10 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   const { currentWorkspace } = useWorkspace();
   const [searchValue, setSearchValue] = useState("");
   const [selectedProposal, setSelectedProposal] =
-    useState<Partial<Proposal> | null>(null);
+    useState<Proposal | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [proposals, setProposals] = useState<Partial<Proposal>[]>([]);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   // derived values
   const pageTitle = currentWorkspace?.name
     ? `${currentWorkspace?.name} - Dashboard`
@@ -32,7 +32,12 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
   // Busca inicial de produtos quando a página carrega
   const fetchProposals = async () => {
     const data = await proposalService.getProposals();
-    setProposals(data);
+    const formatted: Proposal[] = data.map((item) => ({
+      ...item,
+      initialDate: item.initialDate ? new Date(item.initialDate) : new Date(),
+      finalDate: item.finalDate ? new Date(item.finalDate) : new Date(),
+    }));
+    setProposals(formatted);
   };
 
   useEffect(() => {
@@ -59,7 +64,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
         rowProps={(row) => ({
           className: "cursor-pointer hover:bg-gray-900",
           onClick: () => {
-            setSelectedProposal(row.original);
+            setSelectedProposal(row.original as Proposal);
             setIsModalOpen(true);
           },
         })}
@@ -70,6 +75,7 @@ const WorkspacePage: NextPageWithLayout = observer(() => {
           proposal={selectedProposal}
           isOpen={isModalOpen}
           onOpenChange={setIsModalOpen}
+          onProposalUpdated={fetchProposals}
         />
       )}
       <AddProposalDialog

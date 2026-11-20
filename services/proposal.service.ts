@@ -25,4 +25,15 @@ export class ProposalService extends APIService {
         throw error?.response;
       });
   }
+
+  async updateProposal(
+    proposalId: number,
+    data: Partial<Proposal>
+  ): Promise<Proposal> {
+    return this.put(`/api/proposals/${proposalId}`, data)
+      .then((response) => response?.data)
+      .catch((error) => {
+        throw error?.response;
+      });
+  }
 }

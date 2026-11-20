@@ -113,6 +113,20 @@ export interface IWorkspaceIssueSearchResult {
   workspace__slug: string;
 }
 
+export interface IWorkspaceInvitation {
+  id: number;
+  email: string;
+  role: string;
+  status: string;
+  token: string;
+  workspaceId: number;
+  invitedById: number;
+  acceptedById?: number | null;
+  createdAt: string;
+  updatedAt: string;
+  acceptedAt?: string | null;
+}
+
 export interface IWorkspaceProjectSearchResult {
   id: string;
   identifier: string;

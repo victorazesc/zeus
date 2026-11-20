@@ -45,6 +45,10 @@ export function ServiceMultiSelect({
     { service: Partial<Service>; quantity: number }[]
   >(parentSelectedServices);
 
+  React.useEffect(() => {
+    setSelectedServices(parentSelectedServices);
+  }, [parentSelectedServices]);
+
   // Atualizar o localStorage e informar o componente pai ao alterar os serviços
   React.useEffect(() => {
     localStorage.setItem("selectedServices", JSON.stringify(selectedServices));

@@ -52,6 +52,43 @@ export async function sendEmailLink(email: string, url: string) {
     }
 }
 
+export async function sendWorkspaceInvitationEmail({
+    email,
+    workspaceName,
+    inviterName,
+    inviteLink,
+}: {
+    email: string;
+    workspaceName: string;
+    inviterName: string;
+    inviteLink: string;
+}) {
+    const mailOptions = {
+        from: `Time Zeus <${process.env.SMTP_USER}>`,
+        to: email,
+        sender: "Time Zeus",
+        subject: `${inviterName} convidou você para o workspace ${workspaceName}`,
+        html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+          <h2>Olá!</h2>
+          <p><strong>${inviterName}</strong> convidou você para colaborar no workspace <strong>${workspaceName}</strong>.</p>
+          <p>Para acessar, basta clicar no botão abaixo e entrar com este e-mail:</p>
+          <p style="text-align: center; margin: 32px 0;">
+            <a href="${inviteLink}"
+               style="display: inline-block; padding: 12px 20px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px;">
+              Acessar workspace
+            </a>
+          </p>
+          <p>Se o botão não funcionar, copie e cole o link a seguir no seu navegador:</p>
+          <p style="word-break: break-all;">${inviteLink}</p>
+          <p style="margin-top: 32px;">Nos vemos por lá!<br/>Equipe Zeus</p>
+        </div>
+        `,
+    };
+
+    await transporter.sendMail(mailOptions);
+}
+
 
 function generateToken() {
     const randomChars = (length: number) => {

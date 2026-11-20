@@ -30,6 +30,9 @@ model User {
     createdAt        DateTime    @default(now()) @db.Timestamp(6)
     workspaces       Workspace[]
     Proposal         Proposal[]
+    workspaceInvitationsSent WorkspaceInvitation[] @relation("InvitationInvitedBy")
+    workspaceInvitationsAccepted WorkspaceInvitation[] @relation("InvitationAcceptedBy")
+    workspaceMemberships WorkspaceMember[]
 }
 
 model Address {
@@ -95,6 +98,8 @@ model Workspace {
     services Service[]
     products Product[]
     Proposal Proposal[]
+    invitations WorkspaceInvitation[]
+    members WorkspaceMember[]
 }
 
 model Service {
@@ -168,4 +173,38 @@ model ProposalService {
     service     Service  @relation(fields: [serviceId], references: [id])
     description String
     price       Float
+}
+
+model WorkspaceMember {
+    id          Int      @id @default(autoincrement())
+    workspaceId Int
+    userId      Int
+    role        String   @default("collaborator")
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    workspace   Workspace @relation(fields: [workspaceId], references: [id])
+    user        User      @relation(fields: [userId], references: [id])
+
+    @@unique([workspaceId, userId])
+}
+
+model WorkspaceInvitation {
+    id           Int      @id @default(autoincrement())
+    email        String
+    role         String    @default("collaborator")
+    token        String    @unique
+    status       String    @default("pending")
+    workspaceId  Int
+    invitedById  Int
+    acceptedById Int?
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+    acceptedAt   DateTime?
+
+    workspace    Workspace @relation(fields: [workspaceId], references: [id])
+    invitedBy    User      @relation("InvitationInvitedBy", fields: [invitedById], references: [id])
+    acceptedBy   User?     @relation("InvitationAcceptedBy", fields: [acceptedById], references: [id])
+
+    @@unique([email, workspaceId])
 }

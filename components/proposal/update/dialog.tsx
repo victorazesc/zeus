@@ -3,7 +3,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { DatePicker } from "@/components/shared/date-picker";
 import { StatusPicker } from "@/components/shared/status-picker";
@@ -63,8 +63,10 @@ const proposalSchema = z.object({
 
 type ProposalFormData = z.infer<typeof proposalSchema>;
 
+type ProposalWithRelations = Partial<Proposal> & { id: number };
+
 interface Props {
-  proposal: Partial<ProposalFormData>;
+  proposal: ProposalWithRelations;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onProposalUpdated?: () => void;
@@ -82,19 +84,60 @@ export function UpdateProposalDialog({
   const [totalProfit, setTotalProfitChange] = useState<number>(0);
   const [totalPriceServices, setTotalPriceServices] = useState<number>(0);
 
+  const initialFormValues = useMemo<ProposalFormData>(() => {
+    const transformDate = (value: Date | string | undefined | null) =>
+      value ? new Date(value) : new Date();
+
+    return {
+      description: proposal.description ?? "",
+      technicalReport: proposal.technicalReport ?? "",
+      discount: proposal.discount ?? 0,
+      initialDate: transformDate(proposal.initialDate),
+      finalDate: transformDate(proposal.finalDate),
+      value: proposal.value ?? 0,
+      customer: proposal.customer
+        ? {
+            id: proposal.customer.id,
+            name: proposal.customer.name ?? null,
+            email: proposal.customer.email ?? undefined,
+          }
+        : null,
+      user: proposal.user
+        ? {
+            id: proposal.user.id,
+            name: proposal.user.name ?? null,
+            email: proposal.user.email ?? undefined,
+          }
+        : null,
+      status: proposal.status ?? Status.OPEN,
+      products:
+        proposal.products?.map((item) => ({
+          ...item,
+          product: item.product ?? {},
+        })) ?? [],
+      services:
+        proposal.services?.map((item) => ({
+          ...item,
+          service: item.service ?? {},
+        })) ?? [],
+    };
+  }, [proposal]);
+
   const {
     control,
     handleSubmit,
     setValue,
     register,
     getValues,
-    formState: { errors, isSubmitting },
+    watch,
+    reset,
+    formState: { isSubmitting },
   } = useForm<ProposalFormData>({
     resolver: zodResolver(proposalSchema),
-    defaultValues: proposal,
+    defaultValues: initialFormValues,
   });
 
-  const discount = getValues("discount") || 0;
+  const discount = watch("discount") || 0;
 
   const totalProposalValue = totalPrice + totalPriceServices - discount;
   const totalEarn = totalProfit + totalPriceServices - discount;
@@ -113,16 +156,50 @@ export function UpdateProposalDialog({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    reset(initialFormValues);
+
+    const productTotals = proposal.products?.reduce(
+      (acc, item) => {
+        const unitSellPrice =
+          item.sell_price ?? item.product?.sell_price ?? 0;
+        const unitEarn =
+          item.earn ??
+          item.product?.earn ??
+          unitSellPrice - (item.product?.cost_price ?? 0);
+        return {
+          price: acc.price + unitSellPrice * (item.quantity ?? 1),
+          profit: acc.profit + unitEarn * (item.quantity ?? 1),
+        };
+      },
+      { price: 0, profit: 0 }
+    );
+
+    const serviceTotal = proposal.services?.reduce((acc, item) => {
+      const unitPrice = item.price ?? item.service?.price ?? 0;
+      return acc + unitPrice * (item.quantity ?? 1);
+    }, 0);
+
+    setTotalPrice(productTotals?.price ?? 0);
+    setTotalProfitChange(productTotals?.profit ?? 0);
+    setTotalPriceServices(serviceTotal ?? 0);
+  }, [initialFormValues, isOpen, proposal.products, proposal.services, reset]);
+
   const onSubmit = async (data: ProposalFormData) => {
     try {
+      if (!proposal.id) {
+        throw new Error("Proposta inválida.");
+      }
+
       const payload = {
         ...data,
         value: totalProposalValue,
         earn: totalEarn,
       };
-      console.log(payload)
 
-      // await proposalService.updateProposal(proposal.id, payload);
+      await proposalService.updateProposal(proposal.id, payload);
+
       toast.success("Proposta atualizada com sucesso!");
       onProposalUpdated?.();
       onOpenChange(false);
@@ -145,7 +222,9 @@ export function UpdateProposalDialog({
             <Controller
               control={control}
               name="initialDate"
-              render={({ field }) => <DatePicker label="Data Início" {...field} />}
+              render={({ field }) => (
+                <DatePicker label="Data Início" {...field} />
+              )}
             />
             <Controller
               control={control}

@@ -18,7 +18,7 @@ const userLinks = (workspaceSlug: string, userId: number | null) => [
   {
     key: "workspace_invites",
     name: "Convites",
-    href: "/invitations",
+    href: `/${workspaceSlug}/invitations`,
     icon: Mails,
   },
   {

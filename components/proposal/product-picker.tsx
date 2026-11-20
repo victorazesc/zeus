@@ -43,6 +43,10 @@ export const ProductMultiSelect = observer(
     >(parentSelectedProducts);
 
     React.useEffect(() => {
+      setSelectedProducts(parentSelectedProducts);
+    }, [parentSelectedProducts]);
+
+    React.useEffect(() => {
       localStorage.setItem(
         "selectedProducts",
         JSON.stringify(selectedProducts)

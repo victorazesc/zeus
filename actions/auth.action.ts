@@ -4,6 +4,7 @@ import { getTokens } from "@/lib/jwt";
 import { comparePasswords } from "@/lib/auth";
 import { kv } from "@vercel/kv";
 import type { NextRequest } from "next/server";
+import { acceptPendingInvitationsForUser } from "./invitation.action";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -40,7 +41,9 @@ export async function oAuth({ medium, credential, clientId }: any) {
       throw new Error("");
     }
 
-    const { password, ...userWithoutPass } = user;
+    await acceptPendingInvitationsForUser(user);
+    const refreshedUser = await getUser({ email: user.email });
+    const { password, ...userWithoutPass } = refreshedUser ?? user;
     const tokens = getTokens(userWithoutPass);
     return tokens;
   }
@@ -58,7 +61,9 @@ export async function signWithPassword({
   if (!user) return null;
 
   if (user && (await comparePasswords(password, user.password))) {
-    const { password, ...userWithoutPass } = user;
+    await acceptPendingInvitationsForUser(user);
+    const refreshedUser = await getUser({ email: user.email });
+    const { password, ...userWithoutPass } = refreshedUser ?? user;
     const tokens = getTokens(userWithoutPass);
     return tokens;
   } else return null;
@@ -82,7 +87,9 @@ export async function validateOtpAndSignIn({
     user = await createUser({ email });
   }
 
-  const { password, ...userWithoutPass } = user;
+  await acceptPendingInvitationsForUser(user);
+  const refreshedUser = await getUser({ email: user.email });
+  const { password, ...userWithoutPass } = refreshedUser ?? user;
 
   await kv.del(`otp_${email}`);
   const tokens = getTokens(userWithoutPass);
@@ -95,7 +102,9 @@ export async function reSignIn(_request: NextRequest) {
     if (!currentUser) throw new Error("unauthorized");
     const user = await getUser({ email: currentUser.email });
     if (!user) throw new Error("unauthorized");
-    const { password, ...userWithoutPass } = user;
+    await acceptPendingInvitationsForUser(user);
+    const refreshedUser = await getUser({ email: user.email });
+    const { password, ...userWithoutPass } = refreshedUser ?? user;
     const tokens = getTokens(userWithoutPass);
     return tokens;
   } catch (error) {

@@ -12,11 +12,18 @@ interface Proposal {
     products: {
         quantity: number,
         product: Partial<Product>
+        description?: string
+        cost_price?: number
+        sell_price?: number
+        earn?: number
+        profitMargin?: number
     }[]
 
     services: {
         quantity: number,
         service: Service
+        description?: string
+        price?: number
     }[]
     discount: number
 }

@@ -67,12 +67,48 @@ export async function createWorkspace({
   try {
     const user = await getMe(req);
     if (!user) return null;
-    const workspace = await prisma.workspace.create({
-      data: {
-        ...data,
-        ownerId: user.id,
-      },
+    const workspace = await prisma.$transaction(async (tx) => {
+      const workspaceRecord = await tx.workspace.create({
+        data: {
+          ...data,
+          ownerId: user.id,
+        },
+      });
+
+      await tx.workspaceMember.upsert({
+        where: {
+          workspaceId_userId: {
+            workspaceId: workspaceRecord.id,
+            userId: user.id,
+          },
+        },
+        create: {
+          workspaceId: workspaceRecord.id,
+          userId: user.id,
+          role: "admin",
+        },
+        update: {
+          role: "admin",
+        },
+      });
+
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          isOnbordered: true,
+          onboardingStep: {
+            profile_complete: true,
+            workspace_create: true,
+            workspace_information: true,
+            workspace_join: true,
+          },
+          lastWorkspaceId: workspaceRecord.id,
+        },
+      });
+
+      return workspaceRecord;
     });
+
     return workspace;
   } catch (error) {
     console.error("Error creating workspace:", error);
@@ -160,7 +196,18 @@ export async function getUserWorkspaces(req: NextRequest) {
     const user = await getMe(req);
     if (!user) return null;
     const workspaces = await prisma.workspace.findMany({
-      where: { ownerId: user.id },
+      where: {
+        OR: [
+          { ownerId: user.id },
+          {
+            members: {
+              some: {
+                userId: user.id,
+              },
+            },
+          },
+        ],
+      },
     });
     return workspaces;
   } catch (error) {
@@ -169,19 +216,42 @@ export async function getUserWorkspaces(req: NextRequest) {
   }
 }
 
-export async function getWorkspaceMemberMe(req: NextRequest) {
+export async function getWorkspaceMemberMe(req: NextRequest, workspaceSlug: string) {
   const user = await getMe(req);
 
+  if (!user) {
+    throw new Error("Usuário não autenticado");
+  }
+
+  const workspace = await prisma.workspace.findUnique({
+    where: { slug: workspaceSlug },
+  });
+
+  if (!workspace) {
+    throw new Error("Workspace não encontrado");
+  }
+
+  const membership = await prisma.workspaceMember.findFirst({
+    where: {
+      workspaceId: workspace.id,
+      userId: user.id,
+    },
+  });
+
+  if (!membership) {
+    return null;
+  }
+
   return {
-    company_role: null,
-    created_at: new Date(),
-    created_by: 10,
+    company_role: membership.role,
+    created_at: membership.createdAt,
+    created_by: membership.userId,
     default_props: null,
-    id: 10,
-    member: 10,
-    role: null,
-    updated_at: new Date(),
-    updated_by: 10,
-    workspace: 19,
+    id: membership.id,
+    member: membership.userId,
+    role: membership.role,
+    updated_at: membership.updatedAt,
+    updated_by: membership.userId,
+    workspace: membership.workspaceId,
   };
 }

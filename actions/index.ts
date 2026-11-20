@@ -4,3 +4,4 @@ export * from "./user.action";
 export * from "./notify.action";
 export * from "./workspace.action";
 export * from "./file.action";
+export * from "./invitation.action";
